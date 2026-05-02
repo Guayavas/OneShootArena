@@ -1,4 +1,0 @@
-repository "OneShootArena@GuayavasINC@cloud"
-  path "/"
-    br "/main"
-    co "/main"
