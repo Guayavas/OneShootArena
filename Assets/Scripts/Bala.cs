@@ -11,9 +11,9 @@ public class Bala : MonoBehaviour
 
     void OnTriggerEnter(Collider otro)
     {
-        if (otro.CompareTag("Jugador"))
+        if (otro.CompareTag("Player"))
         {
-            Destroy(gameObject);
+            otro.GetComponent<PlayerHealth>()?.RecibirDanio(1f);
         }
     }
 }

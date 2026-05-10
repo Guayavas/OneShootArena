@@ -1,4 +1,6 @@
+using System;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class PlayerShooter : MonoBehaviour
 {
@@ -6,6 +8,7 @@ public class PlayerShooter : MonoBehaviour
     [SerializeField] private Transform puntoDisparo;
     [SerializeField] private float velocidadBala = 20f;
     [SerializeField] private float tiempoRecarga = 3f;
+    [SerializeField] private Image iconoRecarga;
 
     private bool puedoDisparar = true;
 
@@ -15,6 +18,7 @@ public class PlayerShooter : MonoBehaviour
         {
             Disparar();
         }
+        
     }
     
     void Disparar()
