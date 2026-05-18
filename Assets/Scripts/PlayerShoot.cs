@@ -11,6 +11,10 @@ public class PlayerShooter : MonoBehaviour
     [SerializeField] private float velocidadBala = 20f;
     [SerializeField] private float tiempoRecarga = 3f;
     [SerializeField] private Image iconoRecarga;
+    [SerializeField] private float bonusRecarga = 1;
+    public GameObject gameManagerObj;
+    public GameManager gameManager;
+
     private float tiempoTranscurrido;
     private bool puedoDisparar = true;
 
@@ -18,8 +22,10 @@ public class PlayerShooter : MonoBehaviour
     {
         iconoRecarga = GameObject.Find("IndicadorRecarga").GetComponent<Image>();
         iconoRecarga.fillAmount = 1f;
+        //Plantear la idea de update para el icono
         tiempoTranscurrido = tiempoRecarga;
-
+        gameManagerObj = GameObject.Find("GameManager");
+        gameManager = gameManagerObj.GetComponent<GameManager>();
     }
     void Update()
     {
@@ -27,7 +33,7 @@ public class PlayerShooter : MonoBehaviour
         {
             Disparar();
         }
-        iconoRecarga.fillAmount = tiempoTranscurrido / tiempoRecarga;
+        iconoRecarga.fillAmount = tiempoTranscurrido / tiempoRecarga * gameManager.bonusRecargaActivo;
     }
     
     void Disparar()
@@ -41,7 +47,7 @@ public class PlayerShooter : MonoBehaviour
 
     IEnumerator Recargar()
     {
-        while (tiempoTranscurrido < tiempoRecarga)
+        while (tiempoTranscurrido < tiempoRecarga * gameManager.bonusRecargaActivo)
         {
             tiempoTranscurrido += Time.deltaTime;
             yield return null;
