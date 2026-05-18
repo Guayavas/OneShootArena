@@ -1,31 +1,30 @@
 using UnityEngine;
+using UnityEngine.UIElements;
 
 public class PlayerHealth : MonoBehaviour
 {
     [SerializeField] private float vidaMaxima = 1f;
     private float vidaActual;
     private bool tieneEscudo = false;
-    public GameObject gameManagerObj;
-    public GameManager gameManager;
-
+    private PlayerStats stats;
 
     void Start()
     {
         vidaActual = vidaMaxima;
-        gameManagerObj = GameObject.Find("GameManager");
-        gameManager = gameManagerObj.GetComponent<GameManager>();
-
+        stats = GameObject.Find("GameManager").GetComponent<PlayerStats>();
+    }
+    void Update()
+    {
+        //testear muuerte
+        if (Input.GetKeyDown(KeyCode.K))
+            Morir();
     }
 
     public void RecibirDanio(float danio)
     {
         if (tieneEscudo) return;
         vidaActual -= danio;
-        if (vidaActual <= 0)
-        {
-            Morir();
-            gameManager.BonusRecarga(1);
-        } 
+        if (vidaActual <= 0) Morir();
     }
 
     public void ActivarEscudo(float duracion)
@@ -39,8 +38,10 @@ public class PlayerHealth : MonoBehaviour
         tieneEscudo = false;
     }
 
+    
     void Morir()
     {
+        stats.DisminuirBonus();
         Destroy(gameObject);
     }
 }
