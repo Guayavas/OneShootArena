@@ -1,3 +1,4 @@
+using System.Collections;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -10,20 +11,42 @@ public class HomeManager : MonoBehaviour
     [Header("Panel ONGs")]
     public GameObject panelONGs;
 
+    [Header("Validación Nickname")]
+    public GameObject panelErrorNickname;
+    public float duracionError = 2f;
+
+    private Coroutine rutinaError;
+
     void Start()
     {
         if (panelONGs != null)
             panelONGs.SetActive(false);
+
+        if (panelErrorNickname != null)
+            panelErrorNickname.SetActive(false);
     }
 
     public void Jugar()
     {
+        string nickname = "";
+
         if (inputNickname != null)
         {
-            PlayerPrefs.SetString("Nickname", inputNickname.text);
-            PlayerPrefs.Save();
+            nickname = inputNickname.text.Trim();
         }
 
+        if (string.IsNullOrEmpty(nickname))
+        {
+            MostrarErrorNickname();
+            Debug.Log("Debe ingresar un nickname para jugar.");
+            return;
+        }
+
+        if (panelErrorNickname != null)
+            panelErrorNickname.SetActive(false);
+
+        PlayerPrefs.SetString("Nickname", nickname);
+        PlayerPrefs.Save();
         SceneManager.LoadScene("Game");
     }
 
@@ -62,5 +85,46 @@ public class HomeManager : MonoBehaviour
     public void AbrirWWF()
     {
         Application.OpenURL("https://www.wwf.org.co/");
+    }
+
+    public void MostrarErrorNickname()
+    {
+        if (panelErrorNickname == null)
+            return;
+
+        panelErrorNickname.SetActive(true);
+
+        if (rutinaError != null)
+        {
+            StopCoroutine(rutinaError);
+        }
+
+        rutinaError = StartCoroutine(OcultarErrorNickname());
+    }
+
+    public void CerrarErrorNickname()
+    {
+        if (rutinaError != null)
+        {
+            StopCoroutine(rutinaError);
+            rutinaError = null;
+        }
+
+        if (panelErrorNickname != null)
+        {
+            panelErrorNickname.SetActive(false);
+        }
+    }
+
+    IEnumerator OcultarErrorNickname()
+    {
+        yield return new WaitForSeconds(duracionError);
+
+        if (panelErrorNickname != null)
+        {
+            panelErrorNickname.SetActive(false);
+        }
+
+        rutinaError = null;
     }
 }
