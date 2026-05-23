@@ -142,11 +142,15 @@ public class GameManager : MonoBehaviour
     {
         try
         {
+            Debug.Log("Intentando unirse al lobby: " + codigo);
             lobbyActual = await LobbyService.Instance.JoinLobbyByCodeAsync(codigo);
             Debug.Log("Unido al lobby: " + lobbyActual.Id);
 
             string codigoRelay = lobbyActual.Data["codigoRelay"].Value;
+            Debug.Log("Codigo relay obtenido: " + codigoRelay);
+
             JoinAllocation joinAllocation = await RelayService.Instance.JoinAllocationAsync(codigoRelay);
+            Debug.Log("Relay joined");
 
             UnityTransport transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
             transport.SetRelayServerData(
