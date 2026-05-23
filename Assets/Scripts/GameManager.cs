@@ -36,27 +36,25 @@ public class GameManager : MonoBehaviour
             {
                 Count = 1,
                 Filters = new System.Collections.Generic.List<QueryFilter>
-                {
-                    new QueryFilter(
-                        QueryFilter.FieldOptions.AvailableSlots,
-                        "0",
-                        QueryFilter.OpOptions.GT
-                    )
-                }
+            {
+                new QueryFilter(
+                    QueryFilter.FieldOptions.AvailableSlots,
+                    "0",
+                    QueryFilter.OpOptions.GT
+                )
+            }
             };
 
             QueryResponse resultado = await LobbyService.Instance.QueryLobbiesAsync(opciones);
-
+            Debug.Log("Lobbies encontrados: " + resultado.Results.Count);
             if (resultado.Results.Count > 0)
             {
-                // Hay lobby disponible, unirse
                 lobbyActual = resultado.Results[0];
                 Debug.Log("Lobby encontrado: " + lobbyActual.LobbyCode);
                 await UnirseALobby(lobbyActual.LobbyCode);
             }
             else
             {
-                // No hay lobby, crear uno
                 Debug.Log("No hay lobbies disponibles, creando uno...");
                 await CrearLobby();
                 await IniciarRelay();
@@ -127,7 +125,10 @@ public class GameManager : MonoBehaviour
     {
         try
         {
-            CreateLobbyOptions opcionesLobby = new CreateLobbyOptions { IsPrivate = false };
+            CreateLobbyOptions opcionesLobby = new CreateLobbyOptions
+            {
+                IsPrivate = false,
+            };
             lobbyActual = await LobbyService.Instance.CreateLobbyAsync("OneShotArena", 10, opcionesLobby);
             Debug.Log("Lobby creado: " + lobbyActual.LobbyCode);
         }
