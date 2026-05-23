@@ -13,6 +13,8 @@ GameObject:
   - component: {fileID: -7240738552969434189}
   - component: {fileID: 5593103312026587779}
   - component: {fileID: -5314926722713316336}
+  - component: {fileID: -1881346715816051299}
+  - component: {fileID: -7156331633788276743}
   m_Layer: 0
   m_Name: Player_NaveA
   m_TagString: Player
@@ -112,6 +114,39 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   vidaMaxima: 1
+--- !u!114 &-1881346715816051299
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 470579141693910612}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  GlobalObjectIdHash: 3143134711
+  InScenePlacedSourceGlobalObjectIdHash: 0
+  AlwaysReplicateAsRoot: 0
+  SynchronizeTransform: 1
+  ActiveSceneSynchronization: 0
+  SceneMigrationSynchronization: 1
+  SpawnWithObservers: 1
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1
+--- !u!114 &-7156331633788276743
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 470579141693910612}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fc2f5a0300649e64eb97e1a850af51ec, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &3044137208653125397
 GameObject:
   m_ObjectHideFlags: 0
@@ -160,7 +195,6 @@ MonoBehaviour:
   puntoDisparo: {fileID: 5597648924850829547}
   velocidadBala: 15
   tiempoRecarga: 3
-  iconoRecarga: {fileID: 0}
 --- !u!1001 &4285313410905877975
 PrefabInstance:
   m_ObjectHideFlags: 0
