@@ -5,11 +5,16 @@ public class PlayerStats : MonoBehaviour
 {
     public int score = 0;
     public float bonusRecarga = 1f;
-
     private const float BONUS_MIN = 1f;
     private const float BONUS_MAX = 1.3f;
     private const float BONUS_AUMENTO = 0.1f;
+    public string nickname;
 
+    void Start()
+    {
+        nickname = PlayerPrefs.GetString("Nickname", "Jugador");
+        Debug.Log("Jugador: " + nickname);
+    }
     public void AumentarBonus()
     {
         if (bonusRecarga <= 1.3f)
