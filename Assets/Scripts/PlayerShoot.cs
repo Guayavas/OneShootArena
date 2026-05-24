@@ -16,16 +16,20 @@ public class PlayerShoot : NetworkBehaviour
     private bool puedoDisparar = true;
     private PlayerStats stats;
 
-    public override void OnNetworkSpawn()
+    void Awake()
     {
         stats = GetComponent<PlayerStats>();
+    }
 
+    public override void OnNetworkSpawn()
+    {
         if (IsOwner)
         {
             GameObject canvas = GameObject.Find("IndicadorRecarga");
             if (canvas != null) iconoRecarga = canvas.GetComponent<Image>();
 
-            tiempoTranscurrido = tiempoRecarga * (stats != null ? stats.bonusRecarga.Value : 1f);
+            float bonus = (stats != null) ? stats.bonusRecarga.Value : 1f;
+            tiempoTranscurrido = tiempoRecarga * bonus;
         }
     }
 
@@ -49,7 +53,17 @@ public class PlayerShoot : NetworkBehaviour
     [ServerRpc]
     void DispararServerRpc()
     {
-        if (!puedoDisparar) return;
+        if (!puedoDisparar)
+        {
+            Debug.LogWarning("Servidor: Intento de disparo denegado (puedoDisparar = false)");
+            return;
+        }
+
+        if (prefabBala == null || puntoDisparo == null)
+        {
+            Debug.LogError("Servidor: PrefabBala o PuntoDisparo es NULO");
+            return;
+        }
 
         puedoDisparar = false;
         IniciarRecargaLocalClientRpc();
