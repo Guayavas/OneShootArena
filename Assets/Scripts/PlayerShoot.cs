@@ -16,20 +16,23 @@ public class PlayerShoot : NetworkBehaviour
     private bool puedoDisparar = true;
     private PlayerStats stats;
 
-    void Start()
+    public override void OnNetworkSpawn()
     {
-        if (!IsOwner) return;
-
-        GameObject canvas = GameObject.Find("IndicadorRecarga");
-        if (canvas != null) iconoRecarga = canvas.GetComponent<Image>();
-
-        tiempoTranscurrido = tiempoRecarga;
         stats = GetComponent<PlayerStats>();
+
+        if (IsOwner)
+        {
+            GameObject canvas = GameObject.Find("IndicadorRecarga");
+            if (canvas != null) iconoRecarga = canvas.GetComponent<Image>();
+
+            tiempoTranscurrido = tiempoRecarga * (stats != null ? stats.bonusRecarga.Value : 1f);
+        }
     }
 
     void Update()
     {
         if (!IsOwner) return;
+        if (stats == null) return;
 
         if (Input.GetKeyDown(KeyCode.Space) && puedoDisparar)
             DispararServerRpc();
@@ -76,7 +79,8 @@ public class PlayerShoot : NetworkBehaviour
     IEnumerator Recargar()
     {
         // En el servidor, usamos el valor del bonus para el tiempo de espera
-        float duracion = tiempoRecarga * stats.bonusRecarga.Value;
+        float bonus = (stats != null) ? stats.bonusRecarga.Value : 1f;
+        float duracion = tiempoRecarga * bonus;
         yield return new WaitForSeconds(duracion);
         puedoDisparar = true;
         ResetDisparoClientRpc();
@@ -88,7 +92,8 @@ public class PlayerShoot : NetworkBehaviour
         if (IsOwner)
         {
             puedoDisparar = true;
-            tiempoTranscurrido = tiempoRecarga * stats.bonusRecarga.Value;
+            float bonus = (stats != null) ? stats.bonusRecarga.Value : 1f;
+            tiempoTranscurrido = tiempoRecarga * bonus;
         }
     }
 
