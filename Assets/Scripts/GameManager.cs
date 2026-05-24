@@ -222,17 +222,11 @@ public class GameManager : MonoBehaviour
         // Asignar el hash del prefab correspondiente según la selección
         if (prefabsNaves != null && indexNave >= 0 && indexNave < prefabsNaves.Length)
         {
-            // Obtenemos el prefab de la lista de prefabs del NetworkManager
             GameObject navePrefab = prefabsNaves[indexNave];
-            foreach (var networkPrefab in NetworkManager.Singleton.NetworkConfig.Prefabs.Prefabs)
+            NetworkObject networkObject = navePrefab.GetComponent<NetworkObject>();
+            if (networkObject != null)
             {
-                if (networkPrefab.Prefab == navePrefab)
-                {
-                    // En versiones recientes el campo es GlobalObjectIdHash
-                    // Intentamos con GlobalObjectIdHash que es el estándar actual.
-                    response.PlayerPrefabHash = networkPrefab.GlobalObjectIdHash;
-                    break;
-                }
+                response.PlayerPrefabHash = networkObject.GlobalObjectIdHash;
             }
         }
 
