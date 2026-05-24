@@ -22,9 +22,8 @@ public class NicknameSobreNave : NetworkBehaviour
         // Auto-asignar la nave si la referencia está vacía
         if (nave == null)
         {
-            // Buscamos el objeto principal de la nave que tiene el componente NetworkObject
-            NetworkObject no = GetComponentInParent<NetworkObject>();
-            if (no != null) nave = no.transform;
+            // Buscamos el objeto principal (Root) que es donde está el NetworkObject de la nave spawneada
+            nave = transform.root;
         }
 
         AsignarStats();

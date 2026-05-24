@@ -1,0 +1,34 @@
+GUÍA: INSTALACIÓN Y USO DE UNITY MULTIPLAYER TOOLS
+=====================================================
+
+Esta herramienta te permitirá probar tu juego multijugador tú solo, abriendo varias instancias del juego dentro del mismo Editor de Unity.
+
+PASO 1: INSTALACIÓN
+-------------------
+1. En Unity, ve al menú superior: Window -> Package Manager.
+2. Haz clic en el botón "+" (esquina superior izquierda) y elige "Add package by name...".
+3. Escribe el siguiente nombre: com.unity.netcode.adapter.utp
+   (Nota: Si ya tienes Netcode for GameObjects, este suele venir incluido o se instala automáticamente).
+4. Para la herramienta de Play Mode específica, busca en la lista del Package Manager (asegúrate de que esté en "Unity Registry"):
+   - Busca "Multiplayer Tools".
+   - Haz clic en "Install".
+
+PASO 2: CONFIGURACIÓN DE MULTIPLAYER PLAY MODE
+----------------------------------------------
+Una vez instalado "Multiplayer Tools":
+1. Ve al menú superior: Window -> Multiplayer -> Multiplayer Play Mode.
+2. Se abrirá una ventana pequeña.
+3. En esa ventana, cambia el número de "Virtual Players" de 0 a 1 (esto creará una segunda instancia).
+4. Asegúrate de que la casilla "Activate" esté marcada.
+
+PASO 3: CÓMO PROBAR
+-------------------
+1. Dale al botón "Play" normal de Unity.
+2. Verás que se abren automáticamente dos ventanas de juego (una es el Editor principal y la otra es el "Virtual Player").
+3. En una ventana puedes crear el Lobby y en la otra el jugador se unirá automáticamente (o mediante tu lógica de BuscarOCrearLobby).
+
+PASO 4: RECOMENDACIÓN PARA EL LOBBY
+-----------------------------------
+Como tu juego busca lobbies automáticamente, el "Virtual Player" debería encontrar el lobby creado por el Editor principal casi al instante.
+
+¡Listo! Con esto ya no necesitas esperar a un amigo para ver si los dos naves se mueven correctamente.
