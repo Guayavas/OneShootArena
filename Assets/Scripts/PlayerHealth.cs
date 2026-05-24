@@ -14,7 +14,7 @@ public class PlayerHealth : NetworkBehaviour
         {
             vidaActual.Value = vidaMaxima;
         }
-        stats = GetComponent<PlayerStats>();
+        stats = GetComponentInParent<PlayerStats>();
     }
 
     void Update()
@@ -66,7 +66,15 @@ public class PlayerHealth : NetworkBehaviour
             new Vector3(10,0,-10), new Vector3(-10,0,-10)
         };
 
-        transform.position = posiciones[Random.Range(0, posiciones.Length)];
+        transform.position = posiciones[UnityEngine.Random.Range(0, posiciones.Length)];
+
+        // Resetear físicas para evitar bugs de velocidad al reaparecer
+        Rigidbody rb = GetComponent<Rigidbody>();
+        if (rb != null)
+        {
+            rb.velocity = Vector3.zero;
+            rb.angularVelocity = Vector3.zero;
+        }
 
         if (IsServer)
         {

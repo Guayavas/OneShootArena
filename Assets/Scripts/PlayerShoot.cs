@@ -18,7 +18,7 @@ public class PlayerShoot : NetworkBehaviour
 
     void Awake()
     {
-        stats = GetComponent<PlayerStats>();
+        stats = GetComponentInParent<PlayerStats>();
     }
 
     public override void OnNetworkSpawn()

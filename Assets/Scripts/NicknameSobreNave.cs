@@ -19,7 +19,7 @@ public class NicknameSobreNave : NetworkBehaviour
 
     void Start()
     {
-        stats = GetComponent<PlayerStats>();
+        stats = GetComponentInParent<PlayerStats>();
         if (stats != null)
         {
             stats.nickname.OnValueChanged += (oldValue, newValue) =>
