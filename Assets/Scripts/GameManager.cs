@@ -228,7 +228,9 @@ public class GameManager : MonoBehaviour
             {
                 if (networkPrefab.Prefab == navePrefab)
                 {
-                    response.PlayerPrefabHash = networkPrefab.Hash;
+                    // En versiones recientes el campo es GlobalObjectIdHash
+                    // Intentamos con GlobalObjectIdHash que es el estándar actual.
+                    response.PlayerPrefabHash = networkPrefab.GlobalObjectIdHash;
                     break;
                 }
             }

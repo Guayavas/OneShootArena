@@ -34,6 +34,11 @@ public class PlayerShoot : NetworkBehaviour
         if (Input.GetKeyDown(KeyCode.Space) && puedoDisparar)
             DispararServerRpc();
 
+        if (!puedoDisparar && tiempoTranscurrido < tiempoRecarga * stats.bonusRecarga.Value)
+        {
+            tiempoTranscurrido += Time.deltaTime;
+        }
+
         if (iconoRecarga != null)
             iconoRecarga.fillAmount = tiempoTranscurrido / (tiempoRecarga * stats.bonusRecarga.Value);
     }
@@ -44,6 +49,8 @@ public class PlayerShoot : NetworkBehaviour
         if (!puedoDisparar) return;
 
         puedoDisparar = false;
+        IniciarRecargaLocalClientRpc();
+
         GameObject bala = Instantiate(prefabBala, puntoDisparo.position, Quaternion.Euler(90f, 0f, 0f));
         bala.GetComponent<NetworkObject>().Spawn();
 
@@ -56,11 +63,20 @@ public class PlayerShoot : NetworkBehaviour
         StartCoroutine(Recargar());
     }
 
+    [ClientRpc]
+    void IniciarRecargaLocalClientRpc()
+    {
+        if (IsOwner)
+        {
+            puedoDisparar = false;
+            tiempoTranscurrido = 0f;
+        }
+    }
+
     IEnumerator Recargar()
     {
-        float duracion = tiempoRecarga;
-        // En el servidor stats puede ser diferente o no existir igual que en cliente
-        // Idealmente bonusRecarga debería ser un NetworkVariable
+        // En el servidor, usamos el valor del bonus para el tiempo de espera
+        float duracion = tiempoRecarga * stats.bonusRecarga.Value;
         yield return new WaitForSeconds(duracion);
         puedoDisparar = true;
         ResetDisparoClientRpc();
