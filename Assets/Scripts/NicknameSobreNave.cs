@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 
-public class NicknameSobreNave : MonoBehaviour
+using Unity.Netcode;
+
+public class NicknameSobreNave : NetworkBehaviour
 {
     [Header("Referencias")]
     public Transform nave;
@@ -13,13 +15,20 @@ public class NicknameSobreNave : MonoBehaviour
     public Vector3 offsetMundo = new Vector3(0, 1.2f, 0);
     public Vector2 offsetPantalla = new Vector2(0, 25);
 
+    private PlayerStats stats;
+
     void Start()
     {
-        string nickname = PlayerPrefs.GetString("Nickname", "Jugador");
-
-        if (textoNickname != null)
+        stats = GetComponent<PlayerStats>();
+        if (stats != null)
         {
-            textoNickname.text = nickname;
+            stats.nickname.OnValueChanged += (oldValue, newValue) =>
+            {
+                textoNickname.text = newValue.ToString();
+            };
+
+            // Valor inicial
+            textoNickname.text = stats.nickname.Value.ToString();
         }
     }
 

@@ -12,20 +12,47 @@ using UnityEngine;
 
 public class GameManager : MonoBehaviour
 {
-    [SerializeField] private GameObject prefabJugador;
+    [SerializeField] private int maxJugadores = 10;
+    [SerializeField] private GameObject[] prefabsNaves;
     private Lobby lobbyActual;
+    private float tiempoHeartbeat;
 
     async void Start()
     {
-        await UnityServices.InitializeAsync();
-
-        if (!AuthenticationService.Instance.IsSignedIn)
+        try
         {
-            await AuthenticationService.Instance.SignInAnonymouslyAsync();
-            Debug.Log("Conectado con ID: " + AuthenticationService.Instance.PlayerId);
-        }
+            await UnityServices.InitializeAsync();
 
-        await BuscarOCrearLobby();
+            if (!AuthenticationService.Instance.IsSignedIn)
+            {
+                await AuthenticationService.Instance.SignInAnonymouslyAsync();
+                Debug.Log("Conectado con ID: " + AuthenticationService.Instance.PlayerId);
+            }
+
+            await BuscarOCrearLobby();
+        }
+        catch (Exception e)
+        {
+            Debug.LogError("Error en Inicialización: " + e.Message);
+        }
+    }
+
+    void Update()
+    {
+        HandleHeartbeat();
+    }
+
+    private async void HandleHeartbeat()
+    {
+        if (lobbyActual != null && lobbyActual.HostId == AuthenticationService.Instance.PlayerId)
+        {
+            tiempoHeartbeat -= Time.deltaTime;
+            if (tiempoHeartbeat <= 0f)
+            {
+                tiempoHeartbeat = 15f;
+                await LobbyService.Instance.SendHeartbeatAsync(lobbyActual.Id);
+            }
+        }
     }
 
     private async Task BuscarOCrearLobby()
@@ -36,23 +63,19 @@ public class GameManager : MonoBehaviour
             {
                 Count = 1,
                 Filters = new System.Collections.Generic.List<QueryFilter>
-            {
-                new QueryFilter(
-                    QueryFilter.FieldOptions.AvailableSlots,
-                    "0",
-                    QueryFilter.OpOptions.GT
-                )
-            }
+                {
+                    new QueryFilter(QueryFilter.FieldOptions.AvailableSlots, "0", QueryFilter.OpOptions.GT),
+                    new QueryFilter(QueryFilter.FieldOptions.IsLocked, "0", QueryFilter.OpOptions.EQ)
+                }
             };
 
             QueryResponse resultado = await LobbyService.Instance.QueryLobbiesAsync(opciones);
-            Debug.Log("Lobbies encontrados: " + resultado.Results.Count);
+
             if (resultado.Results.Count > 0)
             {
-                Debug.Log("Entrando al if, lobby code: " + resultado.Results[0].LobbyCode);
                 lobbyActual = resultado.Results[0];
-                Debug.Log("Lobby encontrado: " + lobbyActual.LobbyCode);
-                await UnirseALobby(lobbyActual.LobbyCode);
+                Debug.Log("Lobby encontrado: " + lobbyActual.Id);
+                await UnirseALobby(lobbyActual.Id);
             }
             else
             {
@@ -63,7 +86,9 @@ public class GameManager : MonoBehaviour
         }
         catch (Exception e)
         {
-            Debug.LogError(e);
+            Debug.LogError("Error al buscar lobby: " + e.Message);
+            await CrearLobby();
+            await IniciarRelay();
         }
     }
 
@@ -71,16 +96,16 @@ public class GameManager : MonoBehaviour
     {
         try
         {
-            Allocation allocation = await RelayService.Instance.CreateAllocationAsync(9);
+            Allocation allocation = await RelayService.Instance.CreateAllocationAsync(maxJugadores - 1);
             string joinCode = await RelayService.Instance.GetJoinCodeAsync(allocation.AllocationId);
             Debug.Log("Relay Join Code: " + joinCode);
 
             await LobbyService.Instance.UpdateLobbyAsync(lobbyActual.Id, new UpdateLobbyOptions
             {
                 Data = new System.Collections.Generic.Dictionary<string, DataObject>
-            {
-                { "codigoRelay", new DataObject(DataObject.VisibilityOptions.Public, joinCode) }
-            }
+                {
+                    { "codigoRelay", new DataObject(DataObject.VisibilityOptions.Public, joinCode) }
+                }
             });
 
             UnityTransport transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
@@ -92,64 +117,74 @@ public class GameManager : MonoBehaviour
                 allocation.ConnectionData
             );
 
-            NetworkManager.Singleton.OnClientConnectedCallback -= OnClienteConectado;
-            NetworkManager.Singleton.OnClientConnectedCallback += OnClienteConectado;
-
+            NetworkManager.Singleton.ConnectionApprovalCallback = ConnectionApproval;
             NetworkManager.Singleton.StartHost();
             Debug.Log("Host iniciado");
         }
         catch (Exception e)
         {
-            Debug.LogError(e);
+            Debug.LogError("Error en IniciarRelay: " + e.Message);
         }
-    }
-
-    private void OnClienteConectado(ulong clientId)
-    {
-        if (!NetworkManager.Singleton.IsServer) return;
-
-        Debug.Log("Cliente conectado: " + clientId);
-
-        NetorkPersistence persistence = NetworkManager.Singleton.GetComponent<NetorkPersistence>();
-
-        if (persistence == null || persistence.prefabJugador == null)
-        {
-            Debug.LogError("prefabJugador es null");
-            return;
-        }
-
-        GameObject jugador = Instantiate(persistence.prefabJugador);
-        jugador.GetComponent<NetworkObject>().SpawnAsPlayerObject(clientId);
     }
 
     private async Task CrearLobby()
     {
         try
         {
-            CreateLobbyOptions opcionesLobby = new CreateLobbyOptions { IsPrivate = false };
-            lobbyActual = await LobbyService.Instance.CreateLobbyAsync("OneShotArena", 10, opcionesLobby);
-            Debug.Log("Lobby creado: " + lobbyActual.LobbyCode + " | ID: " + lobbyActual.Id);
+            CreateLobbyOptions opcionesLobby = new CreateLobbyOptions
+            {
+                IsPrivate = false,
+                Data = new System.Collections.Generic.Dictionary<string, DataObject>
+                {
+                    { "codigoRelay", new DataObject(DataObject.VisibilityOptions.Public, "0") }
+                }
+            };
+            lobbyActual = await LobbyService.Instance.CreateLobbyAsync("OneShotArena", maxJugadores, opcionesLobby);
+            Debug.Log("Lobby creado: " + lobbyActual.Id);
         }
         catch (LobbyServiceException e)
         {
-            Debug.LogError(e);
+            Debug.LogError("Error al crear lobby: " + e.Message);
         }
     }
 
-    private async Task UnirseALobby(string codigo)
+    private async Task UnirseALobby(string lobbyId)
     {
         try
         {
-            Debug.Log("Intentando unirse al lobby: " + codigo);
-            lobbyActual = await LobbyService.Instance.JoinLobbyByCodeAsync(codigo);
-            Debug.Log("Unido al lobby: " + lobbyActual.Id);
+            int indexNave = PlayerPrefs.GetInt("NaveSeleccionada", 0);
+            JoinLobbyByIdOptions opciones = new JoinLobbyByIdOptions
+            {
+                Player = new Player
+                {
+                    Data = new System.Collections.Generic.Dictionary<string, PlayerDataObject>
+                    {
+                        { "NaveIndex", new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, indexNave.ToString()) }
+                    }
+                }
+            };
 
-            string codigoRelay = lobbyActual.Data["codigoRelay"].Value;
-            Debug.Log("Codigo relay obtenido: " + codigoRelay);
+            lobbyActual = await LobbyService.Instance.JoinLobbyByIdAsync(lobbyId, opciones);
+
+            string codigoRelay = lobbyActual.Data.ContainsKey("codigoRelay") ? lobbyActual.Data["codigoRelay"].Value : "0";
+
+            int reintentos = 0;
+            while (codigoRelay == "0" && reintentos < 10)
+            {
+                Debug.Log("Esperando código de Relay...");
+                await Task.Delay(1000);
+                lobbyActual = await LobbyService.Instance.GetLobbyAsync(lobbyActual.Id);
+                codigoRelay = lobbyActual.Data["codigoRelay"].Value;
+                reintentos++;
+            }
+
+            if (codigoRelay == "0")
+            {
+                Debug.LogError("No se pudo obtener el código de Relay");
+                return;
+            }
 
             JoinAllocation joinAllocation = await RelayService.Instance.JoinAllocationAsync(codigoRelay);
-            Debug.Log("Relay joined");
-
             UnityTransport transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
             transport.SetRelayServerData(
                 joinAllocation.RelayServer.IpV4,
@@ -160,12 +195,58 @@ public class GameManager : MonoBehaviour
                 joinAllocation.HostConnectionData
             );
 
+            NetworkManager.Singleton.NetworkConfig.ConnectionData = System.BitConverter.GetBytes(indexNave);
             NetworkManager.Singleton.StartClient();
-            Debug.Log("Cliente conectado");
+            Debug.Log("Cliente unido al Relay");
         }
         catch (Exception e)
         {
-            Debug.LogError(e);
+            Debug.LogError("Error al unirse: " + e.Message);
+        }
+    }
+
+    private void ConnectionApproval(NetworkManager.ConnectionApprovalRequest request, NetworkManager.ConnectionApprovalResponse response)
+    {
+        int indexNave = 0;
+        if (request.Payload.Length >= 4)
+        {
+            indexNave = System.BitConverter.ToInt32(request.Payload, 0);
+        }
+
+        response.Approved = true;
+        response.CreatePlayerObject = true;
+
+        // Asignar el hash del prefab correspondiente según la selección
+        if (prefabsNaves != null && indexNave >= 0 && indexNave < prefabsNaves.Length)
+        {
+            // Para usar diferentes prefabs por jugador en Netcode,
+            // obtenemos el hash del prefab registrado en NetworkManager
+            uint prefabHash = NetworkManager.Singleton.NetworkConfig.Prefabs.GetNetworkPrefab(prefabsNaves[indexNave]).Hash;
+            response.PlayerPrefabHash = prefabHash;
+        }
+
+        response.Pending = false;
+    }
+
+    private async void OnApplicationQuit()
+    {
+        if (lobbyActual != null)
+        {
+            try
+            {
+                if (lobbyActual.HostId == AuthenticationService.Instance.PlayerId)
+                {
+                    await LobbyService.Instance.DeleteLobbyAsync(lobbyActual.Id);
+                }
+                else
+                {
+                    await LobbyService.Instance.RemovePlayerAsync(lobbyActual.Id, AuthenticationService.Instance.PlayerId);
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning("Error al cerrar lobby al salir: " + e.Message);
+            }
         }
     }
 }

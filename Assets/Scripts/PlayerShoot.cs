@@ -2,8 +2,9 @@ using System;
 using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
+using Unity.Netcode;
 
-public class PlayerShooter : MonoBehaviour
+public class PlayerShoot : NetworkBehaviour
 {
     [SerializeField] private GameObject prefabBala;
     [SerializeField] private Transform puntoDisparo;
@@ -17,43 +18,79 @@ public class PlayerShooter : MonoBehaviour
 
     void Start()
     {
-        iconoRecarga = GameObject.Find("IndicadorRecarga").GetComponent<Image>();
-        iconoRecarga.fillAmount = 1f;
+        if (!IsOwner) return;
+
+        GameObject canvas = GameObject.Find("IndicadorRecarga");
+        if (canvas != null) iconoRecarga = canvas.GetComponent<Image>();
+
         tiempoTranscurrido = tiempoRecarga;
-        stats = GameObject.Find("GameManager").GetComponent<PlayerStats>();
+        stats = GetComponent<PlayerStats>();
     }
 
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Space) && puedoDisparar)
-            Disparar();
+        if (!IsOwner) return;
 
-        iconoRecarga.fillAmount = tiempoTranscurrido / (tiempoRecarga * stats.bonusRecarga);
+        if (Input.GetKeyDown(KeyCode.Space) && puedoDisparar)
+            DispararServerRpc();
+
+        if (iconoRecarga != null)
+            iconoRecarga.fillAmount = tiempoTranscurrido / (tiempoRecarga * stats.bonusRecarga);
     }
 
-    void Disparar()
+    [ServerRpc]
+    void DispararServerRpc()
     {
+        if (!puedoDisparar) return;
+
         puedoDisparar = false;
-        tiempoTranscurrido = 0f;
         GameObject bala = Instantiate(prefabBala, puntoDisparo.position, Quaternion.Euler(90f, 0f, 0f));
-        bala.GetComponent<Rigidbody>().velocity = transform.forward * velocidadBala;
-        bala.GetComponent<Bala>().duenio = this.gameObject;
+        bala.GetComponent<NetworkObject>().Spawn();
+
+        Rigidbody rbBala = bala.GetComponent<Rigidbody>();
+        rbBala.velocity = transform.forward * velocidadBala;
+
+        Bala scriptBala = bala.GetComponent<Bala>();
+        scriptBala.duenioId.Value = OwnerClientId;
+
         StartCoroutine(Recargar());
     }
 
     IEnumerator Recargar()
     {
-        while (tiempoTranscurrido < tiempoRecarga * stats.bonusRecarga)
-        {
-            tiempoTranscurrido += Time.deltaTime;
-            yield return null;
-        }
+        float duracion = tiempoRecarga;
+        // En el servidor stats puede ser diferente o no existir igual que en cliente
+        // Idealmente bonusRecarga debería ser un NetworkVariable
+        yield return new WaitForSeconds(duracion);
         puedoDisparar = true;
+        ResetDisparoClientRpc();
+    }
+
+    [ClientRpc]
+    void ResetDisparoClientRpc()
+    {
+        if (IsOwner)
+        {
+            puedoDisparar = true;
+            tiempoTranscurrido = tiempoRecarga * stats.bonusRecarga;
+        }
     }
 
     public void KillConfirmado()
     {
-        stats.AumentarBonus();
-        stats.SumarPunto();
+        if (IsServer)
+        {
+             KillConfirmadoClientRpc();
+        }
+    }
+
+    [ClientRpc]
+    void KillConfirmadoClientRpc()
+    {
+        if (IsOwner)
+        {
+            stats.AumentarBonus();
+            stats.SumarPunto();
+        }
     }
 }

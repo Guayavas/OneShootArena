@@ -1,49 +1,58 @@
 using UnityEngine;
 using System;
+using Unity.Netcode;
+using Unity.Collections;
 
-public class PlayerStats : MonoBehaviour
+public class PlayerStats : NetworkBehaviour
 {
-    public int score = 0;
-    public float bonusRecarga = 1f;
+    public NetworkVariable<int> score = new NetworkVariable<int>(0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
+    public NetworkVariable<float> bonusRecarga = new NetworkVariable<float>(1f, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
+    public NetworkVariable<FixedString32Bytes> nickname = new NetworkVariable<FixedString32Bytes>("Jugador", NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
+
     private const float BONUS_MIN = 1f;
     private const float BONUS_MAX = 1.3f;
     private const float BONUS_AUMENTO = 0.1f;
-    public string nickname;
 
-    void Start()
+    public override void OnNetworkSpawn()
     {
-        nickname = PlayerPrefs.GetString("Nickname", "Jugador");
-        Debug.Log("Jugador: " + nickname);
+        if (IsOwner)
+        {
+            nickname.Value = PlayerPrefs.GetString("Nickname", "Jugador");
+            Debug.Log("Jugador local: " + nickname.Value);
+        }
     }
     public void AumentarBonus()
     {
-        if (bonusRecarga <= 1.3f)
+        if (!IsOwner) return;
+
+        if (bonusRecarga.Value < BONUS_MAX)
         {
-            bonusRecarga += 0.1f;
-            Debug.Log("Bonus recarga: " + bonusRecarga);
+            bonusRecarga.Value += BONUS_AUMENTO;
+            Debug.Log("Bonus recarga: " + bonusRecarga.Value);
         }
-        else
-        {
-            Debug.Log("No entro");
-        }
-       
     }
 
     public void DisminuirBonus()
     {
-        bonusRecarga = Mathf.Max(BONUS_MIN, (float)Math.Round(bonusRecarga - BONUS_AUMENTO, 1));
-        Debug.Log("Disminucion bonus recarga: " + bonusRecarga);
+        if (!IsOwner) return;
+
+        bonusRecarga.Value = Mathf.Max(BONUS_MIN, (float)Math.Round(bonusRecarga.Value - BONUS_AUMENTO, 1));
+        Debug.Log("Disminucion bonus recarga: " + bonusRecarga.Value);
     }
 
     public void SumarPunto()
     {
-        score++;
-        Debug.Log("Score: " + score);
+        if (!IsOwner) return;
+
+        score.Value++;
+        Debug.Log("Score: " + score.Value);
     }
 
     public void Reiniciar()
     {
-        score = 0;
-        bonusRecarga = BONUS_MIN;
+        if (!IsOwner) return;
+
+        score.Value = 0;
+        bonusRecarga.Value = BONUS_MIN;
     }
 }
