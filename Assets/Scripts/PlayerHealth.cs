@@ -87,20 +87,32 @@ public class PlayerHealth : NetworkBehaviour
             new Vector3(10,0,-10), new Vector3(-10,0,-10)
         };
 
-        transform.position = posiciones[UnityEngine.Random.Range(0, posiciones.Length)];
+        Vector3 nuevaPos = posiciones[UnityEngine.Random.Range(0, posiciones.Length)];
 
-        // Resetear físicas para evitar bugs de velocidad al reaparecer
+        // En Netcode, el servidor debe mover el objeto
+        if (IsServer)
+        {
+            transform.position = nuevaPos;
+            vidaActual.Value = vidaMaxima;
+
+            // Forzar actualización de posición a los clientes
+            RpcMoverNaveClientRpc(nuevaPos);
+        }
+
+        // Resetear físicas para evitar bugs de velocidad al reaparecer (en todos los clientes)
         Rigidbody rb = GetComponent<Rigidbody>();
         if (rb != null)
         {
             rb.velocity = Vector3.zero;
             rb.angularVelocity = Vector3.zero;
         }
+    }
 
-        if (IsServer)
-        {
-            vidaActual.Value = vidaMaxima;
-        }
+    [ClientRpc]
+    private void RpcMoverNaveClientRpc(Vector3 pos)
+    {
+        transform.position = pos;
+        // Si tienes un NetworkTransform, esto ayudará a que no haya "saltos" bruscos o que el transform no luche contra la nueva posición
     }
 
     public void ActivarEscudo(float duracion)
