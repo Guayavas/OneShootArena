@@ -19,7 +19,7 @@ public class NicknameSobreNave : NetworkBehaviour
 
     void Start()
     {
-        stats = GetComponentInParent<PlayerStats>();
+        AsignarStats();
         if (stats != null)
         {
             stats.nickname.OnValueChanged += (oldValue, newValue) =>
@@ -29,6 +29,19 @@ public class NicknameSobreNave : NetworkBehaviour
 
             // Valor inicial
             textoNickname.text = stats.nickname.Value.ToString();
+        }
+    }
+
+    private void AsignarStats()
+    {
+        if (stats != null) return;
+
+        stats = GetComponentInParent<PlayerStats>();
+
+        if (stats == null)
+        {
+            GameObject gm = GameObject.Find("GameManager");
+            if (gm != null) stats = gm.GetComponent<PlayerStats>();
         }
     }
 

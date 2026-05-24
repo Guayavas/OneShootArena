@@ -18,11 +18,13 @@ public class PlayerShoot : NetworkBehaviour
 
     void Awake()
     {
-        stats = GetComponentInParent<PlayerStats>();
+        AsignarStats();
     }
 
     public override void OnNetworkSpawn()
     {
+        AsignarStats();
+
         if (IsOwner)
         {
             GameObject canvas = GameObject.Find("IndicadorRecarga");
@@ -30,6 +32,21 @@ public class PlayerShoot : NetworkBehaviour
 
             float bonus = (stats != null) ? stats.bonusRecarga.Value : 1f;
             tiempoTranscurrido = tiempoRecarga * bonus;
+        }
+    }
+
+    private void AsignarStats()
+    {
+        if (stats != null) return;
+
+        // Intentar buscar en la propia nave (lo ideal)
+        stats = GetComponentInParent<PlayerStats>();
+
+        // Si no está ahí, buscar el global en el GameManager (como lo tienes ahora)
+        if (stats == null)
+        {
+            GameObject gm = GameObject.Find("GameManager");
+            if (gm != null) stats = gm.GetComponent<PlayerStats>();
         }
     }
 
@@ -53,22 +70,31 @@ public class PlayerShoot : NetworkBehaviour
     [ServerRpc]
     void DispararServerRpc()
     {
+        AsignarStats(); // Asegurar referencia en el servidor
+
         if (!puedoDisparar)
         {
-            Debug.LogWarning("Servidor: Intento de disparo denegado (puedoDisparar = false)");
+            Debug.LogWarning("Servidor: Cooldown activo para el cliente: " + OwnerClientId);
             return;
         }
 
-        if (prefabBala == null || puntoDisparo == null)
+        if (prefabBala == null)
         {
-            Debug.LogError("Servidor: PrefabBala o PuntoDisparo es NULO");
+            Debug.LogError("Servidor: PrefabBala es NULO");
             return;
         }
 
+        if (puntoDisparo == null)
+        {
+            // Si puntoDisparo es nulo, intentar usar la posición de la nave como fallback
+            Debug.LogWarning("Servidor: PuntoDisparo es NULO, usando posición de la nave");
+        }
+
+        Vector3 spawnPos = (puntoDisparo != null) ? puntoDisparo.position : transform.position;
         puedoDisparar = false;
         IniciarRecargaLocalClientRpc();
 
-        GameObject bala = Instantiate(prefabBala, puntoDisparo.position, Quaternion.Euler(90f, 0f, 0f));
+        GameObject bala = Instantiate(prefabBala, spawnPos, Quaternion.Euler(90f, 0f, 0f));
         bala.GetComponent<NetworkObject>().Spawn();
 
         Rigidbody rbBala = bala.GetComponent<Rigidbody>();

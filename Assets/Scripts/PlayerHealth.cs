@@ -14,7 +14,20 @@ public class PlayerHealth : NetworkBehaviour
         {
             vidaActual.Value = vidaMaxima;
         }
+        AsignarStats();
+    }
+
+    private void AsignarStats()
+    {
+        if (stats != null) return;
+
         stats = GetComponentInParent<PlayerStats>();
+
+        if (stats == null)
+        {
+            GameObject gm = GameObject.Find("GameManager");
+            if (gm != null) stats = gm.GetComponent<PlayerStats>();
+        }
     }
 
     void Update()
@@ -54,7 +67,15 @@ public class PlayerHealth : NetworkBehaviour
     {
         if (IsOwner)
         {
-            stats.DisminuirBonus();
+            AsignarStats();
+            if (stats != null)
+            {
+                stats.DisminuirBonus();
+            }
+            else
+            {
+                Debug.LogError("NotificarMuerteClientRpc: stats es NULO en el dueño");
+            }
         }
     }
 
