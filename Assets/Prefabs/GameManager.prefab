@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2663273324836439657}
   - component: {fileID: 1391458777565204503}
+  - component: {fileID: -5607615452791717236}
   - component: {fileID: 7028463549073700308}
   m_Layer: 0
   m_Name: GameManager
@@ -45,7 +46,32 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 74e34899b4adaa74497ec85f1245dcfc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  prefabJugador: {fileID: 470579141693910612, guid: fa0643069b7f7b143ac97a891ae32e4d, type: 3}
+  maxJugadores: 10
+  prefabsNaves:
+  - {fileID: 470579141693910612, guid: fa0643069b7f7b143ac97a891ae32e4d, type: 3}
+  - {fileID: 5378438267675968841, guid: 413d88d9142b7fb45933f1f92652021b, type: 3}
+  - {fileID: 3968523769414138359, guid: 1143f3fa9546de94b805061f7aae7a3c, type: 3}
+--- !u!114 &-5607615452791717236
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4209577484796203429}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  GlobalObjectIdHash: 3188499249
+  InScenePlacedSourceGlobalObjectIdHash: 0
+  AlwaysReplicateAsRoot: 0
+  SynchronizeTransform: 1
+  ActiveSceneSynchronization: 0
+  SceneMigrationSynchronization: 1
+  SpawnWithObservers: 1
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1
 --- !u!114 &7028463549073700308
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -58,6 +84,42 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6c352407b89859344b36c10e4e0d4d93, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  score: 0
-  bonusRecarga: 1
-  nickname: 
+  score:
+    m_InternalValue: 0
+  bonusRecarga:
+    m_InternalValue: 1
+  nickname:
+    m_InternalValue:
+      utf8LengthInBytes: 7
+      bytes:
+        offset0000:
+          byte0000: 74
+          byte0001: 117
+          byte0002: 103
+          byte0003: 97
+          byte0004: 100
+          byte0005: 111
+          byte0006: 114
+          byte0007: 0
+          byte0008: 0
+          byte0009: 0
+          byte0010: 0
+          byte0011: 0
+          byte0012: 0
+          byte0013: 0
+          byte0014: 0
+          byte0015: 0
+        byte0016: 0
+        byte0017: 0
+        byte0018: 0
+        byte0019: 0
+        byte0020: 0
+        byte0021: 0
+        byte0022: 0
+        byte0023: 0
+        byte0024: 0
+        byte0025: 0
+        byte0026: 0
+        byte0027: 0
+        byte0028: 0
+        byte0029: 0
