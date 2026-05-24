@@ -35,7 +35,7 @@ public class PlayerShoot : NetworkBehaviour
             DispararServerRpc();
 
         if (iconoRecarga != null)
-            iconoRecarga.fillAmount = tiempoTranscurrido / (tiempoRecarga * stats.bonusRecarga);
+            iconoRecarga.fillAmount = tiempoTranscurrido / (tiempoRecarga * stats.bonusRecarga.Value);
     }
 
     [ServerRpc]
@@ -72,7 +72,7 @@ public class PlayerShoot : NetworkBehaviour
         if (IsOwner)
         {
             puedoDisparar = true;
-            tiempoTranscurrido = tiempoRecarga * stats.bonusRecarga;
+            tiempoTranscurrido = tiempoRecarga * stats.bonusRecarga.Value;
         }
     }
 

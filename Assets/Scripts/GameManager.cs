@@ -50,7 +50,10 @@ public class GameManager : MonoBehaviour
             if (tiempoHeartbeat <= 0f)
             {
                 tiempoHeartbeat = 15f;
-                await LobbyService.Instance.SendHeartbeatAsync(lobbyActual.Id);
+                // Si SendHeartbeatAsync no está disponible, se suele usar un UpdateLobby vacío
+                // pero lo más probable es que sea un problema de versión o referencia.
+                // Intentaremos con una actualización para mantenerlo vivo.
+                await LobbyService.Instance.UpdateLobbyAsync(lobbyActual.Id, new UpdateLobbyOptions());
             }
         }
     }
@@ -219,10 +222,16 @@ public class GameManager : MonoBehaviour
         // Asignar el hash del prefab correspondiente según la selección
         if (prefabsNaves != null && indexNave >= 0 && indexNave < prefabsNaves.Length)
         {
-            // Para usar diferentes prefabs por jugador en Netcode,
-            // obtenemos el hash del prefab registrado en NetworkManager
-            uint prefabHash = NetworkManager.Singleton.NetworkConfig.Prefabs.GetNetworkPrefab(prefabsNaves[indexNave]).Hash;
-            response.PlayerPrefabHash = prefabHash;
+            // Obtenemos el prefab de la lista de prefabs del NetworkManager
+            GameObject navePrefab = prefabsNaves[indexNave];
+            foreach (var networkPrefab in NetworkManager.Singleton.NetworkConfig.Prefabs.Prefabs)
+            {
+                if (networkPrefab.Prefab == navePrefab)
+                {
+                    response.PlayerPrefabHash = networkPrefab.Hash;
+                    break;
+                }
+            }
         }
 
         response.Pending = false;
