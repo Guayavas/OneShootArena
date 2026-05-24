@@ -49,6 +49,7 @@ public class GameManager : MonoBehaviour
             Debug.Log("Lobbies encontrados: " + resultado.Results.Count);
             if (resultado.Results.Count > 0)
             {
+                Debug.Log("Entrando al if, lobby code: " + resultado.Results[0].LobbyCode);
                 lobbyActual = resultado.Results[0];
                 Debug.Log("Lobby encontrado: " + lobbyActual.LobbyCode);
                 await UnirseALobby(lobbyActual.LobbyCode);
@@ -125,12 +126,9 @@ public class GameManager : MonoBehaviour
     {
         try
         {
-            CreateLobbyOptions opcionesLobby = new CreateLobbyOptions
-            {
-                IsPrivate = false,
-            };
+            CreateLobbyOptions opcionesLobby = new CreateLobbyOptions { IsPrivate = false };
             lobbyActual = await LobbyService.Instance.CreateLobbyAsync("OneShotArena", 10, opcionesLobby);
-            Debug.Log("Lobby creado: " + lobbyActual.LobbyCode);
+            Debug.Log("Lobby creado: " + lobbyActual.LobbyCode + " | ID: " + lobbyActual.Id);
         }
         catch (LobbyServiceException e)
         {
