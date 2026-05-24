@@ -17,6 +17,9 @@ public class GameManager : MonoBehaviour
     private Lobby lobbyActual;
     private float tiempoHeartbeat;
 
+    // Diccionario para recordar qué nave eligió cada cliente
+    private System.Collections.Generic.Dictionary<ulong, int> seleccionNaves = new System.Collections.Generic.Dictionary<ulong, int>();
+
     async void Start()
     {
         try
@@ -121,6 +124,9 @@ public class GameManager : MonoBehaviour
             );
 
             NetworkManager.Singleton.ConnectionApprovalCallback = ConnectionApproval;
+            NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnected;
+            NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnected;
+
             NetworkManager.Singleton.StartHost();
             Debug.Log("Host iniciado");
         }
@@ -217,20 +223,47 @@ public class GameManager : MonoBehaviour
         }
 
         response.Approved = true;
-        response.CreatePlayerObject = true;
+        // IMPORTANTE: Ponemos en false para spawnear nosotros manualmente la nave correcta
+        response.CreatePlayerObject = false;
+        response.Pending = false;
 
-        // Asignar el hash del prefab correspondiente según la selección
+        // Guardamos la selección para cuando OnClientConnected se dispare
+        if (NetworkManager.Singleton.IsServer)
+        {
+            seleccionNaves[request.ClientNetworkId] = indexNave;
+        }
+    }
+
+    private void OnClientConnected(ulong clientId)
+    {
+        if (!NetworkManager.Singleton.IsServer) return;
+
+        int indexNave = 0;
+        if (seleccionNaves.TryGetValue(clientId, out int seleccion))
+        {
+            indexNave = seleccion;
+        }
+
         if (prefabsNaves != null && indexNave >= 0 && indexNave < prefabsNaves.Length)
         {
             GameObject navePrefab = prefabsNaves[indexNave];
-            NetworkObject networkObject = navePrefab.GetComponent<NetworkObject>();
-            if (networkObject != null)
-            {
-                response.PlayerPrefabHash = networkObject.GlobalObjectIdHash;
-            }
-        }
+            GameObject jugadorInstancia = Instantiate(navePrefab);
 
-        response.Pending = false;
+            // Asignamos la nave como el Player Object oficial de este cliente
+            jugadorInstancia.GetComponent<NetworkObject>().SpawnAsPlayerObject(clientId);
+        }
+        else
+        {
+            Debug.LogError("No se pudo spawnear la nave: índice inválido o prefabs no asignados.");
+        }
+    }
+
+    private void OnClientDisconnected(ulong clientId)
+    {
+        if (NetworkManager.Singleton.IsServer)
+        {
+            seleccionNaves.Remove(clientId);
+        }
     }
 
     private async void OnApplicationQuit()
