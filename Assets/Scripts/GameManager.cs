@@ -65,19 +65,30 @@ public class GameManager : MonoBehaviour
     {
         try
         {
-            QueryLobbiesOptions opciones = new QueryLobbiesOptions
+            // Intentar buscar varias veces con un pequeño retraso por si el servidor de Unity tarda en propagar
+            int intentos = 0;
+            QueryResponse resultado = null;
+
+            while (intentos < 3)
             {
-                Count = 1,
-                Filters = new System.Collections.Generic.List<QueryFilter>
+                QueryLobbiesOptions opciones = new QueryLobbiesOptions
                 {
-                    new QueryFilter(QueryFilter.FieldOptions.AvailableSlots, "0", QueryFilter.OpOptions.GT),
-                    new QueryFilter(QueryFilter.FieldOptions.IsLocked, "0", QueryFilter.OpOptions.EQ)
-                }
-            };
+                    Count = 1,
+                    Filters = new System.Collections.Generic.List<QueryFilter>
+                    {
+                        new QueryFilter(QueryFilter.FieldOptions.AvailableSlots, "0", QueryFilter.OpOptions.GT),
+                        new QueryFilter(QueryFilter.FieldOptions.IsLocked, "0", QueryFilter.OpOptions.EQ)
+                    }
+                };
 
-            QueryResponse resultado = await LobbyService.Instance.QueryLobbiesAsync(opciones);
+                resultado = await LobbyService.Instance.QueryLobbiesAsync(opciones);
+                if (resultado.Results.Count > 0) break;
 
-            if (resultado.Results.Count > 0)
+                intentos++;
+                if (intentos < 3) await Task.Delay(1500);
+            }
+
+            if (resultado != null && resultado.Results.Count > 0)
             {
                 lobbyActual = resultado.Results[0];
                 Debug.Log("Lobby encontrado: " + lobbyActual.Id);
@@ -132,6 +143,10 @@ public class GameManager : MonoBehaviour
 
             NetworkManager.Singleton.OnClientDisconnectCallback -= OnClientDisconnected;
             NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnected;
+
+            // Registrar la selección del host localmente
+            int indexNave = PlayerPrefs.GetInt("NaveSeleccionada", 0);
+            seleccionNaves[NetworkManager.Singleton.LocalClientId] = indexNave;
 
             NetworkManager.Singleton.StartHost();
             Debug.Log("Host iniciado");
@@ -201,6 +216,10 @@ public class GameManager : MonoBehaviour
 
             JoinAllocation joinAllocation = await RelayService.Instance.JoinAllocationAsync(codigoRelay);
             UnityTransport transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
+
+            // IMPORTANTE: El cliente también debe tener ConnectionApproval habilitado
+            // en su configuración para que el mensaje de conexión coincida (mismo tamaño/formato)
+            NetworkManager.Singleton.NetworkConfig.ConnectionApproval = true;
             transport.SetRelayServerData(
                 joinAllocation.RelayServer.IpV4,
                 (ushort)joinAllocation.RelayServer.Port,
