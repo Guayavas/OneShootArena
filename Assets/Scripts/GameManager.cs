@@ -20,6 +20,15 @@ public class GameManager : MonoBehaviour
     // Diccionario para recordar qué nave eligió cada cliente
     private System.Collections.Generic.Dictionary<ulong, int> seleccionNaves = new System.Collections.Generic.Dictionary<ulong, int>();
 
+    void Awake()
+    {
+        // Forzamos la configuración desde el primer milisegundo
+        if (NetworkManager.Singleton != null)
+        {
+            NetworkManager.Singleton.NetworkConfig.ConnectionApproval = true;
+        }
+    }
+
     async void Start()
     {
         try
@@ -77,7 +86,9 @@ public class GameManager : MonoBehaviour
                     Filters = new System.Collections.Generic.List<QueryFilter>
                     {
                         new QueryFilter(QueryFilter.FieldOptions.AvailableSlots, "0", QueryFilter.OpOptions.GT),
-                        new QueryFilter(QueryFilter.FieldOptions.IsLocked, "0", QueryFilter.OpOptions.EQ)
+                        new QueryFilter(QueryFilter.FieldOptions.IsLocked, "0", QueryFilter.OpOptions.EQ),
+                        // Filtrar por nombre para ser más específicos
+                        new QueryFilter(QueryFilter.FieldOptions.Name, "OneShotArena", QueryFilter.OpOptions.EQ)
                     }
                 };
 
@@ -137,6 +148,8 @@ public class GameManager : MonoBehaviour
             NetworkManager.Singleton.NetworkConfig.ConnectionApproval = true;
             NetworkManager.Singleton.ConnectionApprovalCallback = ConnectionApproval;
 
+            Debug.Log("Iniciando Host. ConnectionApproval: " + NetworkManager.Singleton.NetworkConfig.ConnectionApproval);
+
             // Limpiamos suscripciones anteriores para evitar duplicados
             NetworkManager.Singleton.OnClientConnectedCallback -= OnClientConnected;
             NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnected;
@@ -166,7 +179,9 @@ public class GameManager : MonoBehaviour
                 IsPrivate = false,
                 Data = new System.Collections.Generic.Dictionary<string, DataObject>
                 {
-                    { "codigoRelay", new DataObject(DataObject.VisibilityOptions.Public, "0") }
+                    { "codigoRelay", new DataObject(DataObject.VisibilityOptions.Public, "0") },
+                    // Añadimos GameName como dato indexable para que el filtro funcione
+                    { "GameName", new DataObject(DataObject.VisibilityOptions.Public, "OneShotArena", DataObject.IndexableOptions.S1) }
                 }
             };
             lobbyActual = await LobbyService.Instance.CreateLobbyAsync("OneShotArena", maxJugadores, opcionesLobby);
@@ -220,6 +235,8 @@ public class GameManager : MonoBehaviour
             // IMPORTANTE: El cliente también debe tener ConnectionApproval habilitado
             // en su configuración para que el mensaje de conexión coincida (mismo tamaño/formato)
             NetworkManager.Singleton.NetworkConfig.ConnectionApproval = true;
+            Debug.Log("Iniciando Cliente. ConnectionApproval: " + NetworkManager.Singleton.NetworkConfig.ConnectionApproval);
+
             transport.SetRelayServerData(
                 joinAllocation.RelayServer.IpV4,
                 (ushort)joinAllocation.RelayServer.Port,
