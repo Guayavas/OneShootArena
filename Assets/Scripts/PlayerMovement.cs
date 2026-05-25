@@ -13,9 +13,9 @@ public class PlayerMovement : NetworkBehaviour
     {
         rb = GetComponent<Rigidbody>();
 
-        // Solo el dueño debe tener el Rigidbody como NO cinemático para que las fuerzas funcionen
-        // O bien, usar NetworkTransform para sincronizar.
-        if (!IsOwner)
+        // En un modelo autoritario de servidor, solo el SERVIDOR procesa la física real.
+        // Los clientes solo envían su intención (input).
+        if (!IsServer)
         {
             rb.isKinematic = true;
         }
@@ -27,12 +27,25 @@ public class PlayerMovement : NetworkBehaviour
 
         float x = Input.GetAxisRaw("Horizontal");
         float z = Input.GetAxisRaw("Vertical");
-        inputMovimiento = new Vector3(x, 0f, z).normalized;
+        Vector3 nuevoInput = new Vector3(x, 0f, z).normalized;
+
+        if (nuevoInput != inputMovimiento)
+        {
+            inputMovimiento = nuevoInput;
+            EnviarInputServerRpc(inputMovimiento);
+        }
+    }
+
+    [ServerRpc]
+    void EnviarInputServerRpc(Vector3 input)
+    {
+        inputMovimiento = input;
     }
 
     void FixedUpdate()
     {
-        if (!IsOwner) return;
+        // Solo el servidor aplica las fuerzas físicas
+        if (!IsServer) return;
 
         rb.AddForce(inputMovimiento * velocidad, ForceMode.Force);
 

@@ -97,13 +97,32 @@ public class PlayerShoot : NetworkBehaviour
         GameObject bala = Instantiate(prefabBala, spawnPos, Quaternion.Euler(90f, 0f, 0f));
         bala.GetComponent<NetworkObject>().Spawn();
 
+        Vector3 direccion = transform.forward;
+
         Rigidbody rbBala = bala.GetComponent<Rigidbody>();
-        rbBala.velocity = transform.forward * velocidadBala;
+        rbBala.velocity = direccion * velocidadBala;
 
         Bala scriptBala = bala.GetComponent<Bala>();
         scriptBala.duenioId.Value = OwnerClientId;
 
+        // Sincronizar velocidad visual en clientes
+        SincronizarBalaClientRpc(bala.GetComponent<NetworkObject>().NetworkObjectId, direccion);
+
         StartCoroutine(Recargar());
+    }
+
+    [ClientRpc]
+    void SincronizarBalaClientRpc(ulong idBala, Vector3 dir)
+    {
+        // En el servidor ya se hizo, solo clientes
+        if (IsServer) return;
+
+        // Intentar encontrar la bala por su ID de red
+        if (NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(idBala, out NetworkObject objBala))
+        {
+            Rigidbody rb = objBala.GetComponent<Rigidbody>();
+            if (rb != null) rb.velocity = dir * velocidadBala;
+        }
     }
 
     [ClientRpc]
