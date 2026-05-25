@@ -179,9 +179,7 @@ public class GameManager : MonoBehaviour
                 IsPrivate = false,
                 Data = new System.Collections.Generic.Dictionary<string, DataObject>
                 {
-                    { "codigoRelay", new DataObject(DataObject.VisibilityOptions.Public, "0") },
-                    // Añadimos GameName como dato indexable para que el filtro funcione
-                    { "GameName", new DataObject(DataObject.VisibilityOptions.Public, "OneShotArena", DataObject.IndexableOptions.S1) }
+                    { "codigoRelay", new DataObject(DataObject.VisibilityOptions.Public, "0") }
                 }
             };
             lobbyActual = await LobbyService.Instance.CreateLobbyAsync("OneShotArena", maxJugadores, opcionesLobby);
