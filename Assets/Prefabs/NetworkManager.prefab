@@ -111,3 +111,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   prefabJugador: {fileID: 470579141693910612, guid: fa0643069b7f7b143ac97a891ae32e4d, type: 3}
+  prefabsJugadores:
+  - {fileID: 470579141693910612, guid: fa0643069b7f7b143ac97a891ae32e4d, type: 3}
+  - {fileID: 5378438267675968841, guid: 413d88d9142b7fb45933f1f92652021b, type: 3}
+  - {fileID: 3968523769414138359, guid: 1143f3fa9546de94b805061f7aae7a3c, type: 3}

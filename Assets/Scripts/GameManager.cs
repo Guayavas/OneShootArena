@@ -112,13 +112,24 @@ public class GameManager : MonoBehaviour
 
         NetorkPersistence persistence = NetworkManager.Singleton.GetComponent<NetorkPersistence>();
 
-        if (persistence == null || persistence.prefabJugador == null)
+        if (persistence == null)
         {
-            Debug.LogError("prefabJugador es null");
+            Debug.LogError("No existe NetorkPersistence en el NetworkManager.");
             return;
         }
 
-        GameObject jugador = Instantiate(persistence.prefabJugador);
+        int indiceNave = PlayerPrefs.GetInt("SelectedShip", 0);
+        Debug.Log("Índice de nave seleccionado para spawn: " + indiceNave);
+
+        GameObject prefabSeleccionado = persistence.ObtenerPrefabJugador(indiceNave);
+
+        if (prefabSeleccionado == null)
+        {
+            Debug.LogError("El prefab seleccionado es null.");
+            return;
+        }
+
+        GameObject jugador = Instantiate(prefabSeleccionado);
         jugador.GetComponent<NetworkObject>().SpawnAsPlayerObject(clientId);
     }
 
