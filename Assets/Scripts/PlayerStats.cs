@@ -13,32 +13,22 @@ public class PlayerStats : MonoBehaviour
     void Start()
     {
         nickname = PlayerPrefs.GetString("Nickname", "Jugador");
-        Debug.Log("Jugador: " + nickname);
     }
+
     public void AumentarBonus()
     {
-        if (bonusRecarga <= 1.3f)
-        {
-            bonusRecarga += 0.1f;
-            Debug.Log("Bonus recarga: " + bonusRecarga);
-        }
-        else
-        {
-            Debug.Log("No entro");
-        }
-       
+        if (bonusRecarga <= BONUS_MAX)
+            bonusRecarga += BONUS_AUMENTO;
     }
 
     public void DisminuirBonus()
     {
         bonusRecarga = Mathf.Max(BONUS_MIN, (float)Math.Round(bonusRecarga - BONUS_AUMENTO, 1));
-        Debug.Log("Disminucion bonus recarga: " + bonusRecarga);
     }
 
     public void SumarPunto()
     {
         score++;
-        Debug.Log("Score: " + score);
     }
 
     public void Reiniciar()

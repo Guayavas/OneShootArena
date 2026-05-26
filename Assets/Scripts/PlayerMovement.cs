@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections;
 
 public class PlayerMovement : MonoBehaviour
 {
@@ -8,9 +9,19 @@ public class PlayerMovement : MonoBehaviour
     private Rigidbody rb;
     private Vector3 inputMovimiento;
 
+    private bool boostActivo = false;
+    private float velocidadBase;
+    private float duracionBoost;
+    private float tiempoBoostRestante;
+    private Coroutine rutinaBoost;
+
+    public bool BoostActivo => boostActivo;
+    public float ProgresoBoost => boostActivo ? (tiempoBoostRestante / duracionBoost) : 0f;
+
     void Awake()
     {
         rb = GetComponent<Rigidbody>();
+        velocidadBase = velocidad;
     }
 
     void Update()
@@ -18,6 +29,9 @@ public class PlayerMovement : MonoBehaviour
         float x = Input.GetAxisRaw("Horizontal");
         float z = Input.GetAxisRaw("Vertical");
         inputMovimiento = new Vector3(x, 0f, z).normalized;
+
+        if (boostActivo)
+            tiempoBoostRestante -= Time.deltaTime;
     }
 
     void FixedUpdate()
@@ -29,5 +43,26 @@ public class PlayerMovement : MonoBehaviour
             Quaternion rotacionObjetivo = Quaternion.LookRotation(inputMovimiento);
             rb.rotation = Quaternion.Slerp(rb.rotation, rotacionObjetivo, velocidadRotacion * Time.fixedDeltaTime);
         }
+    }
+
+    public void ActivarBoostVelocidad(float multiplicador, float duracion)
+    {
+        if (rutinaBoost != null)
+            StopCoroutine(rutinaBoost);
+
+        velocidad = velocidadBase * multiplicador;
+        boostActivo = true;
+        duracionBoost = duracion;
+        tiempoBoostRestante = duracion;
+        rutinaBoost = StartCoroutine(DesactivarBoostTras(duracion));
+    }
+
+    private IEnumerator DesactivarBoostTras(float duracion)
+    {
+        yield return new WaitForSeconds(duracion);
+        velocidad = velocidadBase;
+        boostActivo = false;
+        tiempoBoostRestante = 0f;
+        rutinaBoost = null;
     }
 }

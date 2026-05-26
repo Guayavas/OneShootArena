@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
@@ -9,6 +8,10 @@ public class PlayerShooter : MonoBehaviour
     [SerializeField] private Transform puntoDisparo;
     [SerializeField] private float velocidadBala = 20f;
     [SerializeField] private float tiempoRecarga = 3f;
+
+    [Header("HU17 - Limite de reduccion por objeto recogible")]
+    [Tooltip("Minimo de tiempo de recarga que puede quedar tras recoger objetos (en segundos)")]
+    [SerializeField] private float minimoTiempoTrasReduccion = 0.3f;
 
     private Image iconoRecarga;
     private float tiempoTranscurrido;
@@ -49,6 +52,20 @@ public class PlayerShooter : MonoBehaviour
             yield return null;
         }
         puedoDisparar = true;
+    }
+
+    public void AplicarReduccionRecarga(float reduccion)
+    {
+        if (puedoDisparar) return;
+
+        float tiempoTotalRecarga = tiempoRecarga * stats.bonusRecarga;
+        float tiempoRestante = tiempoTotalRecarga - tiempoTranscurrido;
+        float tiempoRestanteMinimo = tiempoTotalRecarga * minimoTiempoTrasReduccion / tiempoRecarga;
+
+        if (tiempoRestante <= tiempoRestanteMinimo) return;
+
+        float reduccionReal = Mathf.Min(reduccion, tiempoRestante - tiempoRestanteMinimo);
+        tiempoTranscurrido += reduccionReal;
     }
 
     public void KillConfirmado()
