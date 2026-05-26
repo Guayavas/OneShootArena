@@ -6297,7 +6297,7 @@ MonoBehaviour:
   - {x: 135, y: 0.5, z: 60}
   - {x: 55, y: 0.5, z: 140}
   - {x: 135, y: 0.5, z: 140}
-  - {x: 95, y: 0.5, z: 100}
+  - {x: 95, y: 0.5, z: 130}
 --- !u!4 &613345816
 Transform:
   m_ObjectHideFlags: 0
@@ -6816,16 +6816,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   prefabEscudo: {fileID: 8981013356199501457, guid: 36b73ec41ba15174c82a35376c63853d, type: 3}
   prefabVelocidad: {fileID: 8981013356199501457, guid: d75ca201d5b3443469fd6a07a4f46b85, type: 3}
+  prefabCajaSuministros: {fileID: 8981013356199501457, guid: 4e39bf79e74711b4982eea58a54de8c2, type: 3}
   intervaloSpawn: 10
   maxPowerUpsEnMapa: 10
+  maxCajasEnMapa: 2
   centroMapa: {x: 75, y: 1, z: 100}
   areaSpawnX: 80
   areaSpawnZ: 100
   alturaSpawn: 0.5
   margenBorde: 10
-  centroCupula: {x: 95, y: 0, z: 95}
-  radioCupula: 20
-  maxIntentos: 20
   autoDetectarSuelo: 0
   fraccionAreaJugable: 0.4
   mostrarGizmosArea: 1
