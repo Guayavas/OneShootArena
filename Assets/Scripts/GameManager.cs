@@ -42,6 +42,7 @@ public class GameManager : MonoBehaviour
             }
 
             await BuscarOCrearLobby();
+            //await UnirseALobby("HS89qTomBsMm9UamsP3shS");
         }
         catch (Exception e)
         {
