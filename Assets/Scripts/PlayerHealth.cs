@@ -6,7 +6,7 @@ public class PlayerHealth : NetworkBehaviour
     [SerializeField] private float vidaMaxima = 1f;
     private NetworkVariable<float> vidaActual = new NetworkVariable<float>();
     private bool tieneEscudo = false;
-    public GameObject visualEscudo; // Arrastrar un objeto visual (ej. esfera semi-transparente)
+    public GameObject visualEscudo; // Asignar esfera visual en Inspector
     private PlayerStats stats;
 
     public override void OnNetworkSpawn()
@@ -43,7 +43,13 @@ public class PlayerHealth : NetworkBehaviour
     public void RecibirDanio(float danio)
     {
         if (!IsServer) return;
-        if (tieneEscudo) return;
+
+        if (tieneEscudo)
+        {
+            DesactivarEscudo();
+            Debug.Log("Escudo absorbio el danio.");
+            return;
+        }
 
         vidaActual.Value -= danio;
         if (vidaActual.Value <= 0) Morir();
@@ -71,8 +77,6 @@ public class PlayerHealth : NetworkBehaviour
     [ClientRpc]
     void NotificarMuerteClientRpc()
     {
-        // El servidor ya maneja la lógica de stats.
-        // Solo mostramos efectos visuales o UI aquí si es necesario.
         if (IsOwner)
         {
             Debug.Log("Has muerto. Reseteando bonus.");
@@ -102,12 +106,9 @@ public class PlayerHealth : NetworkBehaviour
             {
                 rb.velocity = Vector3.zero;
                 rb.angularVelocity = Vector3.zero;
-                rb.Sleep(); // Ayuda a resetear el estado físico completamente
+                rb.Sleep();
                 rb.WakeUp();
             }
-
-            PlayerMovement mov = GetComponent<PlayerMovement>();
-            if (mov != null) mov.ResetearMovimiento();
 
             // Forzar actualización de posición a los clientes
             RpcMoverNaveClientRpc(nuevaPos);
@@ -119,7 +120,6 @@ public class PlayerHealth : NetworkBehaviour
     {
         transform.position = pos;
 
-        // Resetear físicas también en los clientes (especialmente si no es kinematic)
         Rigidbody rb = GetComponent<Rigidbody>();
         if (rb != null)
         {
@@ -134,13 +134,17 @@ public class PlayerHealth : NetworkBehaviour
 
         tieneEscudo = true;
         ActivarVisualEscudoClientRpc(true);
+        CancelInvoke(nameof(DesactivarEscudo));
         Invoke(nameof(DesactivarEscudo), duracion);
     }
 
     void DesactivarEscudo()
     {
+        if (!IsServer) return;
+
         tieneEscudo = false;
         ActivarVisualEscudoClientRpc(false);
+        CancelInvoke(nameof(DesactivarEscudo));
     }
 
     [ClientRpc]

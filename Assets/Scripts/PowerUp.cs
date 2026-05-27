@@ -3,21 +3,23 @@ using UnityEngine;
 
 public class PowerUp : NetworkBehaviour
 {
-    public enum TipoPowerUp { Escudo, Velocidad, Recarga }
+    public enum TipoPowerUp { Escudo, Velocidad, Recarga, Suministro }
     public TipoPowerUp tipo;
 
     [Header("Ajustes")]
     public float duracion = 5f;
     public float multiplicadorVelocidad = 1.5f;
-    public float reduccionRecarga = 0.5f;
+    public int puntosSuministro = 50;
 
     private void OnTriggerEnter(Collider other)
     {
         if (!IsServer) return;
 
-        if (other.CompareTag("Player") || other.GetComponentInParent<PlayerMovement>() != null)
+        // Comprobamos si es un jugador buscando el componente PlayerMovement
+        PlayerMovement movement = other.GetComponentInParent<PlayerMovement>();
+        if (movement != null)
         {
-            AplicarEfecto(other.gameObject);
+            AplicarEfecto(movement.gameObject);
             // El objeto se destruye en el servidor y se sincroniza
             GetComponent<NetworkObject>().Despawn();
         }
@@ -25,10 +27,17 @@ public class PowerUp : NetworkBehaviour
 
     private void AplicarEfecto(GameObject jugador)
     {
-        // Buscamos componentes en el objeto o sus padres
-        PlayerHealth health = jugador.GetComponentInParent<PlayerHealth>();
-        PlayerMovement movement = jugador.GetComponentInParent<PlayerMovement>();
-        PlayerShoot shoot = jugador.GetComponentInParent<PlayerShoot>();
+        // El objeto 'jugador' suele ser el root o tener los componentes
+        PlayerHealth health = jugador.GetComponent<PlayerHealth>();
+        PlayerMovement movement = jugador.GetComponent<PlayerMovement>();
+        PlayerShoot shoot = jugador.GetComponent<PlayerShoot>();
+        PlayerStats stats = jugador.GetComponent<PlayerStats>();
+
+        // Si no están en el objeto tocado, buscamos en el root
+        if (health == null) health = jugador.GetComponentInParent<PlayerHealth>();
+        if (movement == null) movement = jugador.GetComponentInParent<PlayerMovement>();
+        if (shoot == null) shoot = jugador.GetComponentInParent<PlayerShoot>();
+        if (stats == null) stats = jugador.GetComponentInParent<PlayerStats>();
 
         switch (tipo)
         {
@@ -39,7 +48,10 @@ public class PowerUp : NetworkBehaviour
                 if (movement != null) movement.AplicarBonoVelocidad(multiplicadorVelocidad, duracion);
                 break;
             case TipoPowerUp.Recarga:
-                if (shoot != null) shoot.ReducirTiempoRecarga(reduccionRecarga);
+                if (shoot != null) shoot.ReducirTiempoRecarga();
+                break;
+            case TipoPowerUp.Suministro:
+                if (stats != null) stats.SumarPuntos(puntosSuministro);
                 break;
         }
 

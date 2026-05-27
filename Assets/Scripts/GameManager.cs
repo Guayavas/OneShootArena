@@ -41,7 +41,6 @@ public class GameManager : MonoBehaviour
             }
 
             await BuscarOCrearLobby();
-            //await UnirseALobby("HS89qTomBsMm9UamsP3shS");
         }
         catch (Exception e)
         {
@@ -62,9 +61,6 @@ public class GameManager : MonoBehaviour
             if (tiempoHeartbeat <= 0f)
             {
                 tiempoHeartbeat = 15f;
-                // Si SendHeartbeatAsync no está disponible, se suele usar un UpdateLobby vacío
-                // pero lo más probable es que sea un problema de versión o referencia.
-                // Intentaremos con una actualización para mantenerlo vivo.
                 await LobbyService.Instance.UpdateLobbyAsync(lobbyActual.Id, new UpdateLobbyOptions());
             }
         }
@@ -74,40 +70,49 @@ public class GameManager : MonoBehaviour
     {
         try
         {
-            // Intentar buscar varias veces con un pequeño retraso por si el servidor de Unity tarda en propagar
             int intentos = 0;
             QueryResponse resultado = null;
 
-            while (intentos < 3)
+            while (intentos < 5)
             {
                 QueryLobbiesOptions opciones = new QueryLobbiesOptions
                 {
-                    Count = 1,
+                    Count = 20,
                     Filters = new System.Collections.Generic.List<QueryFilter>
                     {
                         new QueryFilter(QueryFilter.FieldOptions.AvailableSlots, "0", QueryFilter.OpOptions.GT),
-                        new QueryFilter(QueryFilter.FieldOptions.IsLocked, "0", QueryFilter.OpOptions.EQ),
-                        // Filtrar por nombre para ser más específicos
-                        new QueryFilter(QueryFilter.FieldOptions.Name, "OneShotArena", QueryFilter.OpOptions.EQ)
+                        new QueryFilter(QueryFilter.FieldOptions.IsLocked, "0", QueryFilter.OpOptions.EQ)
                     }
                 };
 
                 resultado = await LobbyService.Instance.QueryLobbiesAsync(opciones);
-                if (resultado.Results.Count > 0) break;
+
+                if (resultado.Results.Count > 0)
+                {
+                    foreach (var lobby in resultado.Results)
+                    {
+                        if (lobby.Name == "OneShotArena")
+                        {
+                            lobbyActual = lobby;
+                            break;
+                        }
+                    }
+                }
+
+                if (lobbyActual != null) break;
 
                 intentos++;
-                if (intentos < 3) await Task.Delay(1500);
+                await Task.Delay(2000);
             }
 
-            if (resultado != null && resultado.Results.Count > 0)
+            if (lobbyActual != null)
             {
-                lobbyActual = resultado.Results[0];
-                Debug.Log("Lobby encontrado: " + lobbyActual.Id);
+                Debug.Log("Lobby encontrado y uniéndose: " + lobbyActual.Id);
                 await UnirseALobby(lobbyActual.Id);
             }
             else
             {
-                Debug.Log("No hay lobbies disponibles, creando uno...");
+                Debug.Log("No se encontraron partidas activas de OneShotArena, creando nueva...");
                 await CrearLobby();
                 await IniciarRelay();
             }
@@ -148,16 +153,12 @@ public class GameManager : MonoBehaviour
             NetworkManager.Singleton.NetworkConfig.ConnectionApproval = true;
             NetworkManager.Singleton.ConnectionApprovalCallback = ConnectionApproval;
 
-            Debug.Log("Iniciando Host. ConnectionApproval: " + NetworkManager.Singleton.NetworkConfig.ConnectionApproval);
-
-            // Limpiamos suscripciones anteriores para evitar duplicados
             NetworkManager.Singleton.OnClientConnectedCallback -= OnClientConnected;
             NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnected;
 
             NetworkManager.Singleton.OnClientDisconnectCallback -= OnClientDisconnected;
             NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnected;
 
-            // Registrar la selección del host localmente
             int indexNave = PlayerPrefs.GetInt("NaveSeleccionada", 0);
             seleccionNaves[NetworkManager.Singleton.LocalClientId] = indexNave;
 
@@ -169,6 +170,7 @@ public class GameManager : MonoBehaviour
             Debug.LogError("Error en IniciarRelay: " + e.Message);
         }
     }
+
     private async Task CrearLobby()
     {
         try
@@ -207,33 +209,23 @@ public class GameManager : MonoBehaviour
             };
 
             lobbyActual = await LobbyService.Instance.JoinLobbyByIdAsync(lobbyId, opciones);
-
             string codigoRelay = lobbyActual.Data.ContainsKey("codigoRelay") ? lobbyActual.Data["codigoRelay"].Value : "0";
 
             int reintentos = 0;
             while (codigoRelay == "0" && reintentos < 10)
             {
-                Debug.Log("Esperando código de Relay...");
                 await Task.Delay(1000);
                 lobbyActual = await LobbyService.Instance.GetLobbyAsync(lobbyActual.Id);
                 codigoRelay = lobbyActual.Data["codigoRelay"].Value;
                 reintentos++;
             }
 
-            if (codigoRelay == "0")
-            {
-                Debug.LogError("No se pudo obtener el código de Relay");
-                return;
-            }
+            if (codigoRelay == "0") return;
 
             JoinAllocation joinAllocation = await RelayService.Instance.JoinAllocationAsync(codigoRelay);
             UnityTransport transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
 
-            // IMPORTANTE: El cliente también debe tener ConnectionApproval habilitado
-            // en su configuración para que el mensaje de conexión coincida (mismo tamaño/formato)
             NetworkManager.Singleton.NetworkConfig.ConnectionApproval = true;
-            Debug.Log("Iniciando Cliente. ConnectionApproval: " + NetworkManager.Singleton.NetworkConfig.ConnectionApproval);
-
             transport.SetRelayServerData(
                 joinAllocation.RelayServer.IpV4,
                 (ushort)joinAllocation.RelayServer.Port,
@@ -262,11 +254,9 @@ public class GameManager : MonoBehaviour
         }
 
         response.Approved = true;
-        // IMPORTANTE: Ponemos en false para spawnear nosotros manualmente la nave correcta
         response.CreatePlayerObject = false;
         response.Pending = false;
 
-        // Guardamos la selección para cuando OnClientConnected se dispare
         if (NetworkManager.Singleton.IsServer)
         {
             seleccionNaves[request.ClientNetworkId] = indexNave;
@@ -294,13 +284,11 @@ public class GameManager : MonoBehaviour
         if (navePrefab != null)
         {
             GameObject jugadorInstancia = Instantiate(navePrefab);
-
-            // Asignamos la nave como el Player Object oficial de este cliente
             jugadorInstancia.GetComponent<NetworkObject>().SpawnAsPlayerObject(clientId);
         }
         else
         {
-            Debug.LogError("No se pudo spawnear la nave: índice inválido o prefabs no asignados en NetorkPersistence.");
+            Debug.LogError("Error al spawnear nave: Prefab no encontrado en NetorkPersistence.");
         }
     }
 
@@ -329,7 +317,7 @@ public class GameManager : MonoBehaviour
             }
             catch (Exception e)
             {
-                Debug.LogWarning("Error al cerrar lobby al salir: " + e.Message);
+                Debug.LogWarning("Error al cerrar lobby: " + e.Message);
             }
         }
     }

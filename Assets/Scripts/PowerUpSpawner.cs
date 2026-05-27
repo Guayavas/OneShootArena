@@ -5,13 +5,13 @@ using UnityEngine;
 public class PowerUpSpawner : NetworkBehaviour
 {
     [Header("Prefabs")]
-    public GameObject[] prefabsPowerUps; // Escudo, Velocidad, Recarga
+    public GameObject[] prefabsPowerUps;
 
     [Header("Configuración")]
-    public float tiempoEntreSpawns = 10f;
+    public float tiempoEntreSpawns = 15f;
     public int maxPowerUps = 5;
-    public float radioSpawn = 20f;
-    public float alturaSpawn = 0.5f;
+    public float radioSpawn = 25f;
+    public float alturaSpawn = 0.1023054f;
 
     private List<GameObject> powerUpsActivos = new List<GameObject>();
     private float cronometro;
@@ -30,7 +30,7 @@ public class PowerUpSpawner : NetworkBehaviour
     {
         if (!IsServer) return;
 
-        // Limpiar lista de objetos destruidos
+        // Limpiar lista de objetos destruidos o despawneados
         powerUpsActivos.RemoveAll(item => item == null || !item.GetComponent<NetworkObject>().IsSpawned);
 
         cronometro -= Time.deltaTime;
@@ -49,11 +49,9 @@ public class PowerUpSpawner : NetworkBehaviour
     {
         if (prefabsPowerUps == null || prefabsPowerUps.Length == 0) return;
 
-        // Posición aleatoria dentro del radio
         Vector2 circuloAleatorio = Random.insideUnitCircle * radioSpawn;
         Vector3 posicionSpawn = transform.position + new Vector3(circuloAleatorio.x, alturaSpawn, circuloAleatorio.y);
 
-        // Tipo aleatorio
         int indiceAleatorio = Random.Range(0, prefabsPowerUps.Length);
         GameObject prefab = prefabsPowerUps[indiceAleatorio];
 
@@ -72,10 +70,9 @@ public class PowerUpSpawner : NetworkBehaviour
         }
     }
 
-    // Visualizar el radio en el editor
     private void OnDrawGizmosSelected()
     {
-        Gizmos.color = Color.yellow;
+        Gizmos.color = Color.cyan;
         Gizmos.DrawWireSphere(transform.position, radioSpawn);
     }
 }

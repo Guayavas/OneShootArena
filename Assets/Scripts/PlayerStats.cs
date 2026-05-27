@@ -5,14 +5,14 @@ using Unity.Collections;
 
 public class PlayerStats : NetworkBehaviour
 {
-    // Cambiamos a Server-Write Only para evitar errores de NGO en WebGL/Red
+    // NetworkVariables con escritura exclusiva del servidor para mayor seguridad
     public NetworkVariable<int> score = new NetworkVariable<int>(0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
     public NetworkVariable<float> bonusRecarga = new NetworkVariable<float>(1f, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
     public NetworkVariable<FixedString32Bytes> nickname = new NetworkVariable<FixedString32Bytes>(new FixedString32Bytes("Jugador"), NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
 
     private const float BONUS_MIN = 1f;
-    private const float BONUS_MAX = 1.3f;
-    private const float BONUS_AUMENTO = 0.1f;
+    private const float BONUS_MAX = 2.0f; // Bonus máximo de recarga (doble velocidad)
+    private const float BONUS_PASO = 0.1f;
 
     public override void OnNetworkSpawn()
     {
@@ -20,7 +20,6 @@ public class PlayerStats : NetworkBehaviour
         {
             string nickLocal = PlayerPrefs.GetString("Nickname", "Jugador");
             SetNicknameServerRpc(nickLocal);
-            Debug.Log("Jugador local: " + nickLocal);
         }
     }
 
@@ -33,34 +32,31 @@ public class PlayerStats : NetworkBehaviour
     public void AumentarBonus()
     {
         if (!IsServer) return;
-
-        if (bonusRecarga.Value < BONUS_MAX)
-        {
-            bonusRecarga.Value += BONUS_AUMENTO;
-            Debug.Log("Bonus recarga: " + bonusRecarga.Value);
-        }
+        bonusRecarga.Value = Mathf.Min(BONUS_MAX, bonusRecarga.Value + BONUS_PASO);
+        Debug.Log($"Servidor: Bonus aumentado a {bonusRecarga.Value} para {OwnerClientId}");
     }
 
     public void DisminuirBonus()
     {
         if (!IsServer) return;
-
-        bonusRecarga.Value = Mathf.Max(BONUS_MIN, (float)Math.Round(bonusRecarga.Value - BONUS_AUMENTO, 1));
-        Debug.Log("Disminucion bonus recarga: " + bonusRecarga.Value);
+        bonusRecarga.Value = Mathf.Max(BONUS_MIN, bonusRecarga.Value - BONUS_PASO);
     }
 
     public void SumarPunto()
     {
         if (!IsServer) return;
-
         score.Value++;
-        Debug.Log("Score: " + score.Value);
+    }
+
+    public void SumarPuntos(int cantidad)
+    {
+        if (!IsServer) return;
+        score.Value += cantidad;
     }
 
     public void Reiniciar()
     {
         if (!IsServer) return;
-
         score.Value = 0;
         bonusRecarga.Value = BONUS_MIN;
     }

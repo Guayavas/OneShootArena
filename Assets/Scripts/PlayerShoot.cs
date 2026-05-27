@@ -9,7 +9,7 @@ public class PlayerShoot : NetworkBehaviour
     [SerializeField] private GameObject prefabBala;
     [SerializeField] private Transform puntoDisparo;
     [SerializeField] private float velocidadBala = 20f;
-    [SerializeField] private float tiempoRecarga = 3f;
+    [SerializeField] private float tiempoRecargaBase = 3f;
 
     private Image iconoRecarga;
     private float tiempoTranscurrido;
@@ -30,19 +30,17 @@ public class PlayerShoot : NetworkBehaviour
             GameObject canvas = GameObject.Find("IndicadorRecarga");
             if (canvas != null) iconoRecarga = canvas.GetComponent<Image>();
 
+            // Iniciamos con el tiempo de recarga actual
             float bonus = (stats != null) ? stats.bonusRecarga.Value : 1f;
-            tiempoTranscurrido = tiempoRecarga * bonus;
+            tiempoTranscurrido = tiempoRecargaBase / bonus;
         }
     }
 
     private void AsignarStats()
     {
         if (stats != null) return;
-
-        // Intentar buscar en la propia nave (lo ideal)
-        stats = GetComponentInParent<PlayerStats>();
-
-        // Si no está ahí, buscar el global en el GameManager (como lo tienes ahora)
+        stats = GetComponent<PlayerStats>();
+        if (stats == null) stats = GetComponentInParent<PlayerStats>();
         if (stats == null)
         {
             GameObject gm = GameObject.Find("GameManager");
@@ -58,40 +56,24 @@ public class PlayerShoot : NetworkBehaviour
         if (Input.GetKeyDown(KeyCode.Space) && puedoDisparar)
             DispararServerRpc();
 
-        // El bonus disminuye el tiempo de recarga: tiempoRecarga / bonus
-        float tiempoFinal = tiempoRecarga / stats.bonusRecarga.Value;
+        // El bonus disminuye el tiempo de recarga: tiempoRecargaBase / bonus
+        float tiempoActualRecarga = tiempoRecargaBase / stats.bonusRecarga.Value;
 
-        if (!puedoDisparar && tiempoTranscurrido < tiempoFinal)
+        if (!puedoDisparar && tiempoTranscurrido < tiempoActualRecarga)
         {
             tiempoTranscurrido += Time.deltaTime;
         }
 
         if (iconoRecarga != null)
-            iconoRecarga.fillAmount = tiempoTranscurrido / tiempoFinal;
+            iconoRecarga.fillAmount = Mathf.Clamp01(tiempoTranscurrido / tiempoActualRecarga);
     }
 
     [ServerRpc]
     void DispararServerRpc()
     {
-        AsignarStats(); // Asegurar referencia en el servidor
+        if (!puedoDisparar) return;
 
-        if (!puedoDisparar)
-        {
-            Debug.LogWarning("Servidor: Cooldown activo para el cliente: " + OwnerClientId);
-            return;
-        }
-
-        if (prefabBala == null)
-        {
-            Debug.LogError("Servidor: PrefabBala es NULO");
-            return;
-        }
-
-        if (puntoDisparo == null)
-        {
-            // Si puntoDisparo es nulo, intentar usar la posición de la nave como fallback
-            Debug.LogWarning("Servidor: PuntoDisparo es NULO, usando posición de la nave");
-        }
+        if (prefabBala == null) return;
 
         Vector3 spawnPos = (puntoDisparo != null) ? puntoDisparo.position : transform.position;
         puedoDisparar = false;
@@ -101,14 +83,12 @@ public class PlayerShoot : NetworkBehaviour
         bala.GetComponent<NetworkObject>().Spawn();
 
         Vector3 direccion = transform.forward;
-
         Rigidbody rbBala = bala.GetComponent<Rigidbody>();
-        rbBala.velocity = direccion * velocidadBala;
+        if (rbBala != null) rbBala.velocity = direccion * velocidadBala;
 
         Bala scriptBala = bala.GetComponent<Bala>();
-        scriptBala.duenioId.Value = OwnerClientId;
+        if (scriptBala != null) scriptBala.duenioId.Value = OwnerClientId;
 
-        // Sincronizar velocidad visual en clientes
         SincronizarBalaClientRpc(bala.GetComponent<NetworkObject>().NetworkObjectId, direccion);
 
         StartCoroutine(Recargar());
@@ -117,10 +97,7 @@ public class PlayerShoot : NetworkBehaviour
     [ClientRpc]
     void SincronizarBalaClientRpc(ulong idBala, Vector3 dir)
     {
-        // En el servidor ya se hizo, solo clientes
         if (IsServer) return;
-
-        // Intentar encontrar la bala por su ID de red
         if (NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(idBala, out NetworkObject objBala))
         {
             Rigidbody rb = objBala.GetComponent<Rigidbody>();
@@ -140,9 +117,9 @@ public class PlayerShoot : NetworkBehaviour
 
     IEnumerator Recargar()
     {
-        // En el servidor, usamos el valor del bonus para el tiempo de espera
+        AsignarStats();
         float bonus = (stats != null) ? stats.bonusRecarga.Value : 1f;
-        float duracion = tiempoRecarga / bonus;
+        float duracion = tiempoRecargaBase / bonus;
         yield return new WaitForSeconds(duracion);
         puedoDisparar = true;
         ResetDisparoClientRpc();
@@ -155,32 +132,22 @@ public class PlayerShoot : NetworkBehaviour
         {
             puedoDisparar = true;
             float bonus = (stats != null) ? stats.bonusRecarga.Value : 1f;
-            tiempoTranscurrido = tiempoRecarga / bonus;
+            tiempoTranscurrido = tiempoRecargaBase / bonus;
         }
     }
 
-    public void ReducirTiempoRecarga(float cantidad)
+    public void ReducirTiempoRecarga()
     {
         if (!IsServer) return;
-
         AsignarStats();
-        if (stats != null)
-        {
-            // Aplicamos la reducción directamente en el servidor
-            stats.AumentarBonus();
-        }
-
-        // Notificar al dueño (opcional, para feedback sonoro/visual)
-        AplicarReduccionRecargaClientRpc();
+        if (stats != null) stats.AumentarBonus();
+        ReducirTiempoRecargaClientRpc();
     }
 
     [ClientRpc]
-    private void AplicarReduccionRecargaClientRpc()
+    private void ReducirTiempoRecargaClientRpc()
     {
-        if (IsOwner)
-        {
-            Debug.Log("¡Recarga mejorada!");
-        }
+        if (IsOwner) Debug.Log("¡Recarga mejorada!");
     }
 
     public void KillConfirmado()
@@ -200,9 +167,6 @@ public class PlayerShoot : NetworkBehaviour
     [ClientRpc]
     void KillConfirmadoClientRpc()
     {
-        if (IsOwner)
-        {
-            Debug.Log("¡Enemigo eliminado! Bonus aumentado.");
-        }
+        if (IsOwner) Debug.Log("¡Enemigo eliminado! Bonus aumentado.");
     }
 }
