@@ -8,6 +8,9 @@ public class HomeManager : MonoBehaviour
     [Header("Nickname")]
     public TMP_InputField inputNickname;
 
+    [Header("Selecci\xf3n de nave")]
+    public ShipSelectionManager shipSelectionManager;
+
     [Header("Panel ONGs")]
     public GameObject panelONGs;
 
@@ -46,7 +49,21 @@ public class HomeManager : MonoBehaviour
             panelErrorNickname.SetActive(false);
 
         PlayerPrefs.SetString("Nickname", nickname);
+
+        if (shipSelectionManager != null)
+        {
+            shipSelectionManager.GuardarSeleccion();
+        }
+        else
+        {
+            PlayerPrefs.SetInt("SelectedShip", 0);
+            Debug.LogWarning("No se asign\xf3 ShipSelectionManager. Se usar\xe1 la nave por defecto.");
+        }
+
+        Debug.Log("Nave seleccionada guardada: " + PlayerPrefs.GetInt("SelectedShip", 0));
+
         PlayerPrefs.Save();
+
         SceneManager.LoadScene("Game");
     }
 

@@ -17,25 +17,52 @@ public class NicknameSobreNave : NetworkBehaviour
 
     private PlayerStats stats;
 
-    void Start()
+    public override void OnNetworkSpawn()
     {
-        // Auto-asignar la nave si la referencia está vacía
-        if (nave == null)
-        {
-            // Buscamos el objeto principal (Root) que es donde está el NetworkObject de la nave spawneada
-            nave = transform.root;
-        }
+        // Solo queremos ver nuestro propio nombre si somos el dueño
+        // O si quieres que todos vean todos, quitamos esta restricción.
+        // El usuario dijo: "me basta con que el jugador lo pueda ver. O sea, el jugador... Personalmente pueda ver su nombre personalmente."
 
+        // Sin embargo, para que funcione en red, buscaremos los stats del objeto padre (la nave)
         AsignarStats();
+
         if (stats != null)
         {
-            stats.nickname.OnValueChanged += (oldValue, newValue) =>
+            // Si es el dueño de la nave, configuramos el nombre
+            if (stats.IsOwner)
             {
-                textoNickname.text = newValue.ToString();
-            };
+                stats.nickname.OnValueChanged += (oldValue, newValue) =>
+                {
+                    textoNickname.text = newValue.ToString();
+                };
+                textoNickname.text = stats.nickname.Value.ToString();
+            }
+            else
+            {
+                // Si no somos el dueño, tal vez queremos ocultarlo o mostrarlo si se sincroniza
+                textoNickname.text = stats.nickname.Value.ToString();
+                stats.nickname.OnValueChanged += (oldValue, newValue) =>
+                {
+                    textoNickname.text = newValue.ToString();
+                };
+            }
+        }
+    }
 
-            // Valor inicial
-            textoNickname.text = stats.nickname.Value.ToString();
+    void Start()
+    {
+        // Intentar asignar la nave al inicio
+        ActualizarReferenciaNave();
+    }
+
+    private void ActualizarReferenciaNave()
+    {
+        if (nave == null)
+        {
+            // Intentamos buscar en los ancestros si estamos dentro de la jerarquía de la nave
+            PlayerMovement mov = GetComponentInParent<PlayerMovement>();
+            if (mov != null) nave = mov.transform;
+            else nave = transform.root;
         }
     }
 
@@ -52,13 +79,35 @@ public class NicknameSobreNave : NetworkBehaviour
         }
     }
 
-    void Update()
+    void LateUpdate()
     {
-        if (nave == null || textoNickname == null || Camera.main == null)
+        if (textoNickname == null)
+            return;
+
+        if (nave == null)
+        {
+            ActualizarReferenciaNave();
+            if (nave == null)
+            {
+                textoNickname.enabled = false;
+                return;
+            }
+        }
+
+        if (Camera.main == null)
             return;
 
         Vector3 posicionPantalla = Camera.main.WorldToScreenPoint(nave.position + offsetMundo);
 
-        textoNickname.transform.position = posicionPantalla + new Vector3(offsetPantalla.x, offsetPantalla.y, 0);
+        // Si la nave está detrás de la cámara, no mostrar
+        if (posicionPantalla.z < 0)
+        {
+            textoNickname.enabled = false;
+        }
+        else
+        {
+            textoNickname.enabled = true;
+            textoNickname.transform.position = posicionPantalla + new Vector3(offsetPantalla.x, offsetPantalla.y, 0);
+        }
     }
 }

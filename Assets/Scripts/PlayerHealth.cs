@@ -6,6 +6,7 @@ public class PlayerHealth : NetworkBehaviour
     [SerializeField] private float vidaMaxima = 1f;
     private NetworkVariable<float> vidaActual = new NetworkVariable<float>();
     private bool tieneEscudo = false;
+    public GameObject visualEscudo; // Arrastrar un objeto visual (ej. esfera semi-transparente)
     private PlayerStats stats;
 
     public override void OnNetworkSpawn()
@@ -56,6 +57,11 @@ public class PlayerHealth : NetworkBehaviour
 
     void Morir()
     {
+        if (!IsServer) return;
+
+        AsignarStats();
+        if (stats != null) stats.DisminuirBonus();
+
         NotificarMuerteClientRpc();
 
         // Desactivar visualmente o mover a posición de respawn
@@ -65,26 +71,21 @@ public class PlayerHealth : NetworkBehaviour
     [ClientRpc]
     void NotificarMuerteClientRpc()
     {
+        // El servidor ya maneja la lógica de stats.
+        // Solo mostramos efectos visuales o UI aquí si es necesario.
         if (IsOwner)
         {
-            AsignarStats();
-            if (stats != null)
-            {
-                stats.DisminuirBonus();
-            }
-            else
-            {
-                Debug.LogError("NotificarMuerteClientRpc: stats es NULO en el dueño");
-            }
+            Debug.Log("Has muerto. Reseteando bonus.");
         }
     }
 
     private void ManejarRespawn()
     {
+        float correctY = 0.1023054f;
         // Posiciones aleatorias de respawn (ejemplo)
         Vector3[] posiciones = new Vector3[] {
-            new Vector3(0,0,0), new Vector3(10,0,10), new Vector3(-10,0,10),
-            new Vector3(10,0,-10), new Vector3(-10,0,-10)
+            new Vector3(0,correctY,0), new Vector3(10,correctY,10), new Vector3(-10,correctY,10),
+            new Vector3(10,correctY,-10), new Vector3(-10,correctY,-10)
         };
 
         Vector3 nuevaPos = posiciones[UnityEngine.Random.Range(0, posiciones.Length)];
@@ -95,11 +96,30 @@ public class PlayerHealth : NetworkBehaviour
             transform.position = nuevaPos;
             vidaActual.Value = vidaMaxima;
 
+            // Resetear físicas en el servidor
+            Rigidbody rb = GetComponent<Rigidbody>();
+            if (rb != null)
+            {
+                rb.velocity = Vector3.zero;
+                rb.angularVelocity = Vector3.zero;
+                rb.Sleep(); // Ayuda a resetear el estado físico completamente
+                rb.WakeUp();
+            }
+
+            PlayerMovement mov = GetComponent<PlayerMovement>();
+            if (mov != null) mov.ResetearMovimiento();
+
             // Forzar actualización de posición a los clientes
             RpcMoverNaveClientRpc(nuevaPos);
         }
+    }
 
-        // Resetear físicas para evitar bugs de velocidad al reaparecer (en todos los clientes)
+    [ClientRpc]
+    private void RpcMoverNaveClientRpc(Vector3 pos)
+    {
+        transform.position = pos;
+
+        // Resetear físicas también en los clientes (especialmente si no es kinematic)
         Rigidbody rb = GetComponent<Rigidbody>();
         if (rb != null)
         {
@@ -108,21 +128,25 @@ public class PlayerHealth : NetworkBehaviour
         }
     }
 
-    [ClientRpc]
-    private void RpcMoverNaveClientRpc(Vector3 pos)
-    {
-        transform.position = pos;
-        // Si tienes un NetworkTransform, esto ayudará a que no haya "saltos" bruscos o que el transform no luche contra la nueva posición
-    }
-
     public void ActivarEscudo(float duracion)
     {
+        if (!IsServer) return;
+
         tieneEscudo = true;
+        ActivarVisualEscudoClientRpc(true);
         Invoke(nameof(DesactivarEscudo), duracion);
     }
 
     void DesactivarEscudo()
     {
         tieneEscudo = false;
+        ActivarVisualEscudoClientRpc(false);
+    }
+
+    [ClientRpc]
+    private void ActivarVisualEscudoClientRpc(bool activado)
+    {
+        if (visualEscudo != null)
+            visualEscudo.SetActive(activado);
     }
 }

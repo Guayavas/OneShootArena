@@ -58,13 +58,16 @@ public class PlayerShoot : NetworkBehaviour
         if (Input.GetKeyDown(KeyCode.Space) && puedoDisparar)
             DispararServerRpc();
 
-        if (!puedoDisparar && tiempoTranscurrido < tiempoRecarga * stats.bonusRecarga.Value)
+        // El bonus disminuye el tiempo de recarga: tiempoRecarga / bonus
+        float tiempoFinal = tiempoRecarga / stats.bonusRecarga.Value;
+
+        if (!puedoDisparar && tiempoTranscurrido < tiempoFinal)
         {
             tiempoTranscurrido += Time.deltaTime;
         }
 
         if (iconoRecarga != null)
-            iconoRecarga.fillAmount = tiempoTranscurrido / (tiempoRecarga * stats.bonusRecarga.Value);
+            iconoRecarga.fillAmount = tiempoTranscurrido / tiempoFinal;
     }
 
     [ServerRpc]
@@ -139,7 +142,7 @@ public class PlayerShoot : NetworkBehaviour
     {
         // En el servidor, usamos el valor del bonus para el tiempo de espera
         float bonus = (stats != null) ? stats.bonusRecarga.Value : 1f;
-        float duracion = tiempoRecarga * bonus;
+        float duracion = tiempoRecarga / bonus;
         yield return new WaitForSeconds(duracion);
         puedoDisparar = true;
         ResetDisparoClientRpc();
@@ -152,7 +155,31 @@ public class PlayerShoot : NetworkBehaviour
         {
             puedoDisparar = true;
             float bonus = (stats != null) ? stats.bonusRecarga.Value : 1f;
-            tiempoTranscurrido = tiempoRecarga * bonus;
+            tiempoTranscurrido = tiempoRecarga / bonus;
+        }
+    }
+
+    public void ReducirTiempoRecarga(float cantidad)
+    {
+        if (!IsServer) return;
+
+        AsignarStats();
+        if (stats != null)
+        {
+            // Aplicamos la reducción directamente en el servidor
+            stats.AumentarBonus();
+        }
+
+        // Notificar al dueño (opcional, para feedback sonoro/visual)
+        AplicarReduccionRecargaClientRpc();
+    }
+
+    [ClientRpc]
+    private void AplicarReduccionRecargaClientRpc()
+    {
+        if (IsOwner)
+        {
+            Debug.Log("¡Recarga mejorada!");
         }
     }
 
@@ -160,6 +187,12 @@ public class PlayerShoot : NetworkBehaviour
     {
         if (IsServer)
         {
+             AsignarStats();
+             if (stats != null)
+             {
+                 stats.AumentarBonus();
+                 stats.SumarPunto();
+             }
              KillConfirmadoClientRpc();
         }
     }
@@ -169,8 +202,7 @@ public class PlayerShoot : NetworkBehaviour
     {
         if (IsOwner)
         {
-            stats.AumentarBonus();
-            stats.SumarPunto();
+            Debug.Log("¡Enemigo eliminado! Bonus aumentado.");
         }
     }
 }

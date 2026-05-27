@@ -13,7 +13,6 @@ using UnityEngine;
 public class GameManager : MonoBehaviour
 {
     [SerializeField] private int maxJugadores = 10;
-    [SerializeField] private GameObject[] prefabsNaves;
     private Lobby lobbyActual;
     private float tiempoHeartbeat;
 
@@ -170,7 +169,6 @@ public class GameManager : MonoBehaviour
             Debug.LogError("Error en IniciarRelay: " + e.Message);
         }
     }
-
     private async Task CrearLobby()
     {
         try
@@ -285,9 +283,16 @@ public class GameManager : MonoBehaviour
             indexNave = seleccion;
         }
 
-        if (prefabsNaves != null && indexNave >= 0 && indexNave < prefabsNaves.Length)
+        NetorkPersistence persistence = FindObjectOfType<NetorkPersistence>();
+        GameObject navePrefab = null;
+
+        if (persistence != null)
         {
-            GameObject navePrefab = prefabsNaves[indexNave];
+            navePrefab = persistence.ObtenerPrefabJugador(indexNave);
+        }
+
+        if (navePrefab != null)
+        {
             GameObject jugadorInstancia = Instantiate(navePrefab);
 
             // Asignamos la nave como el Player Object oficial de este cliente
@@ -295,7 +300,7 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            Debug.LogError("No se pudo spawnear la nave: índice inválido o prefabs no asignados.");
+            Debug.LogError("No se pudo spawnear la nave: índice inválido o prefabs no asignados en NetorkPersistence.");
         }
     }
 
