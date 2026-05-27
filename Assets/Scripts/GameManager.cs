@@ -170,7 +170,6 @@ public class GameManager : MonoBehaviour
             Debug.LogError("Error en IniciarRelay: " + e.Message);
         }
     }
-
     private async Task CrearLobby()
     {
         try

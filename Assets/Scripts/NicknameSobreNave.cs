@@ -54,7 +54,16 @@ public class NicknameSobreNave : NetworkBehaviour
 
     void Update()
     {
-        if (nave == null || textoNickname == null || Camera.main == null)
+        if (textoNickname == null)
+            return;
+
+        if (nave == null)
+        {
+            textoNickname.gameObject.SetActive(false);
+            return;
+        }
+
+        if (Camera.main == null)
             return;
 
         Vector3 posicionPantalla = Camera.main.WorldToScreenPoint(nave.position + offsetMundo);
