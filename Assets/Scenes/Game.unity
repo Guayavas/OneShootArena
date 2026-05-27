@@ -1695,7 +1695,7 @@ Transform:
   m_GameObject: {fileID: 113721676}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 22.404806, y: -27.598183, z: 24.050367}
+  m_LocalPosition: {x: 11.17, y: 3.68, z: 1.23}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -9025,8 +9025,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 902704237}
-  - component: {fileID: 902704239}
   - component: {fileID: 902704238}
+  - component: {fileID: 902704239}
   m_Layer: 0
   m_Name: SpawnerPickUps
   m_TagString: Untagged
@@ -9043,7 +9043,7 @@ Transform:
   m_GameObject: {fileID: 902704236}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 22.404806, y: -27.598183, z: 24.050367}
+  m_LocalPosition: {x: 22.404806, y: -29.2, z: 96}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -9082,7 +9082,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: aa3e33f6972bc7a46b9dcd9957992090, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  prefabPickup: {fileID: 0}
+  prefabPickup: {fileID: 7860396624974551682, guid: 10f6a317aaf9bb24fa5533720ba0e8c9, type: 3}
   tiempoReaparicion: 20
   alturaSpawn: 0.1023054
 --- !u!1001 &936201276

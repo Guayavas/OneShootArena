@@ -140,7 +140,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c3b0acdd1a79ba746b2b96db271a2812, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  tipo: 1
+  tipo: 3
   duracion: 5
   multiplicadorVelocidad: 1.5
-  reduccionRecarga: 0.5
+  puntosSuministro: 50
