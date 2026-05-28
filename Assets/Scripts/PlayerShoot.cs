@@ -10,6 +10,7 @@ public class PlayerShoot : NetworkBehaviour
     [SerializeField] private Transform puntoDisparo;
     [SerializeField] private float velocidadBala = 20f;
     [SerializeField] private float tiempoRecargaBase = 3f;
+    [SerializeField] private GameObject indicadorBonus;
 
     private Image iconoRecarga;
     private float tiempoTranscurrido;
@@ -41,17 +42,20 @@ public class PlayerShoot : NetworkBehaviour
         if (stats != null) return;
         stats = GetComponent<PlayerStats>();
         if (stats == null) stats = GetComponentInParent<PlayerStats>();
-        if (stats == null)
-        {
-            GameObject gm = GameObject.Find("GameManager");
-            if (gm != null) stats = gm.GetComponent<PlayerStats>();
-        }
+
+        // Si aún es null, intentamos buscarlo en el mismo objeto que el NetworkObject
+        if (stats == null && NetworkObject != null)
+            stats = NetworkObject.GetComponent<PlayerStats>();
     }
 
     void Update()
     {
         if (!IsOwner) return;
-        if (stats == null) return;
+        if (stats == null)
+        {
+            AsignarStats();
+            return;
+        }
 
         if (Input.GetKeyDown(KeyCode.Space) && puedoDisparar)
             DispararServerRpc();
@@ -66,6 +70,24 @@ public class PlayerShoot : NetworkBehaviour
 
         if (iconoRecarga != null)
             iconoRecarga.fillAmount = Mathf.Clamp01(tiempoTranscurrido / tiempoActualRecarga);
+
+        ActualizarIndicadorBonus();
+    }
+
+    private void ActualizarIndicadorBonus()
+    {
+        if (indicadorBonus == null)
+        {
+            GameObject obj = GameObject.Find("IndicadorBonusRecarga");
+            if (obj != null) indicadorBonus = obj;
+        }
+
+        if (indicadorBonus != null)
+        {
+            bool activo = stats.bonusRecarga.Value > 1.0f;
+            if (indicadorBonus.activeSelf != activo)
+                indicadorBonus.SetActive(activo);
+        }
     }
 
     [ServerRpc]
@@ -136,18 +158,34 @@ public class PlayerShoot : NetworkBehaviour
         }
     }
 
-    public void ReducirTiempoRecarga()
+    public void ResetearCooldown()
+    {
+        if (!IsServer) return;
+        puedoDisparar = true;
+        ResetDisparoClientRpc();
+    }
+
+    public void ReducirTiempoRecargaTemporal(float cantidad)
+    {
+        if (!IsServer) return;
+        ReducirTiempoRecargaTemporalClientRpc(cantidad);
+    }
+
+    [ClientRpc]
+    private void ReducirTiempoRecargaTemporalClientRpc(float cantidad)
+    {
+        if (IsOwner)
+        {
+            tiempoTranscurrido += cantidad;
+            Debug.Log($"Recarga reducida en {cantidad}s");
+        }
+    }
+
+    public void AumentarBonusPermanente()
     {
         if (!IsServer) return;
         AsignarStats();
         if (stats != null) stats.AumentarBonus();
-        ReducirTiempoRecargaClientRpc();
-    }
-
-    [ClientRpc]
-    private void ReducirTiempoRecargaClientRpc()
-    {
-        if (IsOwner) Debug.Log("¡Recarga mejorada!");
     }
 
     public void KillConfirmado()

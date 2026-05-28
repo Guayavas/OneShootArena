@@ -56,11 +56,11 @@ public class HomeManager : MonoBehaviour
         }
         else
         {
-            PlayerPrefs.SetInt("SelectedShip", 0);
+            PlayerPrefs.SetInt("NaveSeleccionada", 0);
             Debug.LogWarning("No se asign\xf3 ShipSelectionManager. Se usar\xe1 la nave por defecto.");
         }
 
-        Debug.Log("Nave seleccionada guardada: " + PlayerPrefs.GetInt("SelectedShip", 0));
+        Debug.Log("Nave seleccionada guardada: " + PlayerPrefs.GetInt("NaveSeleccionada", 0));
 
         PlayerPrefs.Save();
 

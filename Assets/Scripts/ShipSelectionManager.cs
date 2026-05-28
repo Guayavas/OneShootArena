@@ -42,9 +42,7 @@ public class ShipSelectionManager : MonoBehaviour
     public void AnteriorNave()
     {
         if (naves == null || naves.Length == 0) return;
-        indiceActual--;
-        if (indiceActual < 0)
-            indiceActual = naves.Length - 1;
+        indiceActual = (indiceActual - 1 + naves.Length) % naves.Length;
 
         ActualizarUI();
         GuardarSeleccion();
