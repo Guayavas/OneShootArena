@@ -11,7 +11,7 @@ public class PlayerStats : NetworkBehaviour
     public NetworkVariable<FixedString32Bytes> nickname = new NetworkVariable<FixedString32Bytes>(new FixedString32Bytes("Jugador"), NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
 
     private const float BONUS_MIN = 1f;
-    private const float BONUS_MAX = 2.0f; // Bonus máximo de recarga (doble velocidad)
+    private const float BONUS_MAX = 1.3f; // Bonus máximo de recarga (30% extra)
     private const float BONUS_PASO = 0.1f;
 
     public override void OnNetworkSpawn()

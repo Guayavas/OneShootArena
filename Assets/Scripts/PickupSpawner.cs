@@ -27,7 +27,21 @@ public class PickupSpawner : NetworkBehaviour
     {
         if (!IsServer) return;
 
-        if (instanciaActual == null || !instanciaActual.GetComponent<NetworkObject>().IsSpawned)
+        bool needsSpawn = false;
+        if (instanciaActual == null)
+        {
+            needsSpawn = true;
+        }
+        else
+        {
+            NetworkObject netObj = instanciaActual.GetComponent<NetworkObject>();
+            if (netObj == null || !netObj.IsSpawned)
+            {
+                needsSpawn = true;
+            }
+        }
+
+        if (needsSpawn)
         {
             cronometro += Time.deltaTime;
             if (cronometro >= tiempoReaparicion)

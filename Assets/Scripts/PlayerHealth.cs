@@ -22,7 +22,8 @@ public class PlayerHealth : NetworkBehaviour
     {
         if (stats != null) return;
 
-        stats = GetComponentInParent<PlayerStats>();
+        stats = GetComponent<PlayerStats>();
+        if (stats == null) stats = GetComponentInParent<PlayerStats>();
 
         if (stats == null)
         {
@@ -67,6 +68,9 @@ public class PlayerHealth : NetworkBehaviour
 
         AsignarStats();
         if (stats != null) stats.DisminuirBonus();
+
+        // Asegurarse de que el escudo se desactive al morir
+        if (tieneEscudo) DesactivarEscudo();
 
         NotificarMuerteClientRpc();
 
