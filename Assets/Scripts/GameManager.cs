@@ -160,7 +160,10 @@ public class GameManager : MonoBehaviour
             NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnected;
 
             int indexNave = PlayerPrefs.GetInt("NaveSeleccionada", 0);
-            seleccionNaves[NetworkManager.Singleton.LocalClientId] = indexNave;
+
+            // El Host siempre es ID 0 en NGO. Lo guardamos explícitamente antes de arrancar.
+            seleccionNaves[0] = indexNave;
+            Debug.Log($"Host: Nave seleccionada {indexNave} (ID 0).");
 
             NetworkManager.Singleton.StartHost();
             Debug.Log("Host iniciado");
@@ -235,6 +238,7 @@ public class GameManager : MonoBehaviour
                 joinAllocation.HostConnectionData
             );
 
+            Debug.Log($"Cliente: Nave seleccionada {indexNave}. Enviando en ConnectionData.");
             NetworkManager.Singleton.NetworkConfig.ConnectionData = System.BitConverter.GetBytes(indexNave);
             NetworkManager.Singleton.StartClient();
             Debug.Log("Cliente unido al Relay");
@@ -252,6 +256,10 @@ public class GameManager : MonoBehaviour
         {
             indexNave = System.BitConverter.ToInt32(request.Payload, 0);
         }
+        else
+        {
+            Debug.LogWarning($"ConnectionApproval: Payload corto ({request.Payload.Length}) para el cliente {request.ClientNetworkId}");
+        }
 
         response.Approved = true;
         response.CreatePlayerObject = false;
@@ -259,6 +267,7 @@ public class GameManager : MonoBehaviour
 
         if (NetworkManager.Singleton.IsServer)
         {
+            Debug.Log($"ConnectionApproval: Cliente {request.ClientNetworkId} envi\xf3 indexNave {indexNave}");
             seleccionNaves[request.ClientNetworkId] = indexNave;
         }
     }
@@ -272,6 +281,12 @@ public class GameManager : MonoBehaviour
         {
             indexNave = seleccion;
         }
+        else
+        {
+            Debug.LogWarning($"OnClientConnected: No se encontr\xf3 selecci\xf3n para cliente {clientId}. Usando 0.");
+        }
+
+        Debug.Log($"Spawning nave para cliente {clientId} usando \xedndice {indexNave}");
 
         NetorkPersistence persistence = FindObjectOfType<NetorkPersistence>();
         GameObject navePrefab = null;
