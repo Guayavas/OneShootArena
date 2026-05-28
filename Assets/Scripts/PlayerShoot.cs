@@ -11,7 +11,10 @@ public class PlayerShoot : NetworkBehaviour
     [SerializeField] private float velocidadBala = 20f;
     [SerializeField] private float tiempoRecargaBase = 3f;
 
-    private Image iconoRecarga;
+    [Header("UI")]
+    [SerializeField] private Image iconoRecarga;
+    [SerializeField] private GameObject indicadorBonus;
+
     private float tiempoTranscurrido;
     private bool puedoDisparar = true;
     private PlayerStats stats;
@@ -27,8 +30,16 @@ public class PlayerShoot : NetworkBehaviour
 
         if (IsOwner)
         {
-            GameObject canvas = GameObject.Find("IndicadorRecarga");
-            if (canvas != null) iconoRecarga = canvas.GetComponent<Image>();
+            if (iconoRecarga == null)
+            {
+                GameObject obj = GameObject.Find("IndicadorRecarga");
+                if (obj != null) iconoRecarga = obj.GetComponent<Image>();
+            }
+
+            if (indicadorBonus == null)
+            {
+                indicadorBonus = GameObject.Find("IndicadorBonusRecarga");
+            }
 
             // Iniciamos con el tiempo de recarga actual
             float bonus = (stats != null) ? stats.bonusRecarga.Value : 1f;
@@ -66,6 +77,9 @@ public class PlayerShoot : NetworkBehaviour
 
         if (iconoRecarga != null)
             iconoRecarga.fillAmount = Mathf.Clamp01(tiempoTranscurrido / tiempoActualRecarga);
+
+        if (indicadorBonus != null)
+            indicadorBonus.SetActive(stats.bonusRecarga.Value > 1.01f);
     }
 
     [ServerRpc]
@@ -139,15 +153,27 @@ public class PlayerShoot : NetworkBehaviour
     public void ReducirTiempoRecarga()
     {
         if (!IsServer) return;
-        AsignarStats();
-        if (stats != null) stats.AumentarBonus();
+
+        // Resetear recarga inmediatamente
+        puedoDisparar = true;
+        StopCoroutine(nameof(Recargar));
+
+        ResetDisparoClientRpc();
+
         ReducirTiempoRecargaClientRpc();
     }
 
     [ClientRpc]
     private void ReducirTiempoRecargaClientRpc()
     {
-        if (IsOwner) Debug.Log("¡Recarga mejorada!");
+        if (IsOwner) Debug.Log("¡Recarga reseteada!");
+    }
+
+    public void ReducirPequenoTiempoRecarga()
+    {
+        if (!IsServer) return;
+        AsignarStats();
+        if (stats != null) stats.AumentarBonus();
     }
 
     public void KillConfirmado()

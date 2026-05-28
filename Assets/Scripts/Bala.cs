@@ -26,15 +26,24 @@ public class Bala : NetworkBehaviour
 
         if (otro.CompareTag("Player"))
         {
-            NetworkObject no = otro.GetComponent<NetworkObject>();
+            // Intentar obtener NetworkObject del objeto tocado o sus padres
+            NetworkObject no = otro.GetComponentInParent<NetworkObject>();
             if (no != null && no.OwnerClientId != duenioId.Value)
             {
-                otro.GetComponent<PlayerHealth>()?.RecibirDanio(1f);
+                // El daño se aplica al PlayerHealth, que puede estar en el mismo objeto, padre o hijo
+                PlayerHealth health = no.GetComponentInChildren<PlayerHealth>();
+                if (health == null) health = no.GetComponentInParent<PlayerHealth>();
+
+                if (health != null) health.RecibirDanio(1f);
 
                 // Buscar al dueño para confirmar la kill
                 if (NetworkManager.Singleton.ConnectedClients.TryGetValue(duenioId.Value, out var client))
                 {
-                    client.PlayerObject.GetComponent<PlayerShoot>()?.KillConfirmado();
+                    if (client.PlayerObject != null)
+                    {
+                        PlayerShoot shooter = client.PlayerObject.GetComponentInChildren<PlayerShoot>();
+                        if (shooter != null) shooter.KillConfirmado();
+                    }
                 }
 
                 DespawnBala();

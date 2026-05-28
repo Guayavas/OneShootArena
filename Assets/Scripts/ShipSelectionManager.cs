@@ -34,18 +34,33 @@ public class ShipSelectionManager : MonoBehaviour
     public void SiguienteNave()
     {
         if (naves == null || naves.Length == 0) return;
-        indiceActual = (indiceActual + 1) % naves.Length;
-        ActualizarUI();
-        GuardarSeleccion();
+
+        // Evitamos el wrap-around si el usuario prefiere límites fijos
+        if (indiceActual < naves.Length - 1)
+        {
+            indiceActual++;
+            ActualizarUI();
+            GuardarSeleccion();
+        }
     }
 
     public void AnteriorNave()
     {
         if (naves == null || naves.Length == 0) return;
-        indiceActual--;
-        if (indiceActual < 0)
-            indiceActual = naves.Length - 1;
 
+        if (indiceActual > 0)
+        {
+            indiceActual--;
+            ActualizarUI();
+            GuardarSeleccion();
+        }
+    }
+
+    public void SeleccionarNavePorIndice(int nuevoIndice)
+    {
+        if (naves == null || naves.Length == 0) return;
+
+        indiceActual = Mathf.Clamp(nuevoIndice, 0, naves.Length - 1);
         ActualizarUI();
         GuardarSeleccion();
     }

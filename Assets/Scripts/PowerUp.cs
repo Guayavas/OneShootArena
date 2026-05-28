@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class PowerUp : NetworkBehaviour
 {
-    public enum TipoPowerUp { Escudo, Velocidad, Recarga, Suministro }
+    public enum TipoPowerUp { Escudo, Velocidad, Recarga, Suministro, PickupRecarga }
     public TipoPowerUp tipo;
 
     [Header("Ajustes")]
@@ -52,6 +52,9 @@ public class PowerUp : NetworkBehaviour
                 break;
             case TipoPowerUp.Suministro:
                 if (stats != null) stats.SumarPuntos(puntosSuministro);
+                break;
+            case TipoPowerUp.PickupRecarga:
+                if (shoot != null) shoot.ReducirPequenoTiempoRecarga();
                 break;
         }
 
