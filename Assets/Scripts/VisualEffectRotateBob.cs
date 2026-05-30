@@ -7,8 +7,8 @@ public class VisualEffectRotateBob : MonoBehaviour
     public Vector3 ejeRotacion = Vector3.up;
 
     [Header("Balanceo (Bobbing)")]
-    public float amplitudBob = 0.2f;
-    public float frecuenciaBob = 2f;
+    public float amplitudBob = 0.15f;
+    public float frecuenciaBob = 1.5f;
 
     private Vector3 posicionInicial;
 

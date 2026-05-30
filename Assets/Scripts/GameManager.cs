@@ -236,6 +236,7 @@ public class GameManager : MonoBehaviour
             );
 
             NetworkManager.Singleton.NetworkConfig.ConnectionData = System.BitConverter.GetBytes(indexNave);
+            Debug.Log("Uniéndose con Nave Index: " + indexNave);
             NetworkManager.Singleton.StartClient();
             Debug.Log("Cliente unido al Relay");
         }
