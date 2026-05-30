@@ -9,6 +9,7 @@ public class PlayerMovement : NetworkBehaviour
 
     private Rigidbody rb;
     private Vector3 inputMovimiento;
+    private GameObject indicadorUIVelocidad;
 
     public override void OnNetworkSpawn()
     {
@@ -35,6 +36,21 @@ public class PlayerMovement : NetworkBehaviour
         {
             inputMovimiento = nuevoInput;
             EnviarInputServerRpc(inputMovimiento);
+        }
+
+        ActualizarUIVelocidad();
+    }
+
+    private void ActualizarUIVelocidad()
+    {
+        if (indicadorUIVelocidad == null)
+            indicadorUIVelocidad = GameObject.Find("IndicadorVelocidad");
+
+        if (indicadorUIVelocidad != null)
+        {
+            bool tieneBono = velocidadActual > velocidadBase;
+            if (indicadorUIVelocidad.activeSelf != tieneBono)
+                indicadorUIVelocidad.SetActive(tieneBono);
         }
     }
 

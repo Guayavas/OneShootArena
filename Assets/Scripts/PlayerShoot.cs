@@ -17,6 +17,9 @@ public class PlayerShoot : NetworkBehaviour
     private bool puedoDisparar = true;
     private PlayerStats stats;
 
+    [Header("Indicadores UI")]
+    [SerializeField] private GameObject indicadorPowerUpRecarga;
+
     void Awake()
     {
         AsignarStats();
@@ -31,9 +34,10 @@ public class PlayerShoot : NetworkBehaviour
             GameObject canvas = GameObject.Find("IndicadorRecarga");
             if (canvas != null) iconoRecarga = canvas.GetComponent<Image>();
 
-            // Iniciamos con el tiempo de recarga actual
-            float bonus = (stats != null) ? stats.bonusRecarga.Value : 1f;
-            tiempoTranscurrido = tiempoRecargaBase / bonus;
+            // Iniciamos listos para disparar
+            float tiempoActualRecarga = (stats != null) ? (tiempoRecargaBase / stats.bonusRecarga.Value) : tiempoRecargaBase;
+            tiempoTranscurrido = tiempoActualRecarga;
+            puedoDisparar = true;
         }
     }
 
@@ -57,30 +61,37 @@ public class PlayerShoot : NetworkBehaviour
             return;
         }
 
-        if (Input.GetKeyDown(KeyCode.Space) && puedoDisparar)
-            DispararServerRpc();
-
         // El bonus disminuye el tiempo de recarga: tiempoRecargaBase / bonus
         float tiempoActualRecarga = tiempoRecargaBase / stats.bonusRecarga.Value;
 
-        if (!puedoDisparar && tiempoTranscurrido < tiempoActualRecarga)
+        if (!puedoDisparar)
         {
             tiempoTranscurrido += Time.deltaTime;
+            if (tiempoTranscurrido >= tiempoActualRecarga)
+            {
+                puedoDisparar = true;
+                tiempoTranscurrido = tiempoActualRecarga;
+            }
+        }
+
+        if (Input.GetKeyDown(KeyCode.Space) && puedoDisparar)
+        {
+            puedoDisparar = false;
+            tiempoTranscurrido = 0f;
+            DispararServerRpc();
         }
 
         if (iconoRecarga != null)
             iconoRecarga.fillAmount = Mathf.Clamp01(tiempoTranscurrido / tiempoActualRecarga);
 
-        ActualizarIndicadorBonus();
+        ActualizarIndicadoresUI();
     }
 
-    private void ActualizarIndicadorBonus()
+    private void ActualizarIndicadoresUI()
     {
+        // 1. Bonus Pasivo (por Kills)
         if (indicadorBonus == null)
-        {
-            GameObject obj = GameObject.Find("IndicadorBonusRecarga");
-            if (obj != null) indicadorBonus = obj;
-        }
+            indicadorBonus = GameObject.Find("IndicadorBonusRecarga");
 
         if (indicadorBonus != null)
         {
@@ -88,17 +99,32 @@ public class PlayerShoot : NetworkBehaviour
             if (indicadorBonus.activeSelf != activo)
                 indicadorBonus.SetActive(activo);
         }
+
+        // 2. PowerUp de Recarga (el que resetea el cooldown)
+        if (indicadorPowerUpRecarga == null)
+            indicadorPowerUpRecarga = GameObject.Find("IndicadorPWRRecarga");
+
+        if (indicadorPowerUpRecarga != null)
+        {
+            // Mostramos el indicador si el cooldown acaba de ser reseteado y no hemos disparado
+            // En este caso, si puedoDisparar es true pero tiempoTranscurrido se forzó al máximo
+            float tiempoActualRecarga = tiempoRecargaBase / stats.bonusRecarga.Value;
+            bool activo = puedoDisparar && (tiempoTranscurrido >= tiempoActualRecarga);
+            // Sin embargo, el usuario quiere que se vea cuando "lo tiene".
+            // Como este powerup es instantáneo, tal vez solo deba brillar un momento o hasta el siguiente disparo.
+            if (indicadorPowerUpRecarga.activeSelf != activo)
+                indicadorPowerUpRecarga.SetActive(activo);
+        }
     }
 
     [ServerRpc]
     void DispararServerRpc()
     {
-        if (!puedoDisparar) return;
-
         if (prefabBala == null) return;
 
         Vector3 spawnPos = (puntoDisparo != null) ? puntoDisparo.position : transform.position;
-        puedoDisparar = false;
+
+        // Notificamos a los clientes para que inicien su recarga visual
         IniciarRecargaLocalClientRpc();
 
         GameObject bala = Instantiate(prefabBala, spawnPos, Quaternion.Euler(90f, 0f, 0f));
@@ -112,8 +138,6 @@ public class PlayerShoot : NetworkBehaviour
         if (scriptBala != null) scriptBala.duenioId.Value = OwnerClientId;
 
         SincronizarBalaClientRpc(bala.GetComponent<NetworkObject>().NetworkObjectId, direccion);
-
-        StartCoroutine(Recargar());
     }
 
     [ClientRpc]
@@ -137,16 +161,6 @@ public class PlayerShoot : NetworkBehaviour
         }
     }
 
-    IEnumerator Recargar()
-    {
-        AsignarStats();
-        float bonus = (stats != null) ? stats.bonusRecarga.Value : 1f;
-        float duracion = tiempoRecargaBase / bonus;
-        yield return new WaitForSeconds(duracion);
-        puedoDisparar = true;
-        ResetDisparoClientRpc();
-    }
-
     [ClientRpc]
     void ResetDisparoClientRpc()
     {
@@ -161,7 +175,6 @@ public class PlayerShoot : NetworkBehaviour
     public void ResetearCooldown()
     {
         if (!IsServer) return;
-        puedoDisparar = true;
         ResetDisparoClientRpc();
     }
 

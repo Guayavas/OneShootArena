@@ -7,6 +7,7 @@ public class PlayerHealth : NetworkBehaviour
     private NetworkVariable<float> vidaActual = new NetworkVariable<float>();
     private bool tieneEscudo = false;
     public GameObject visualEscudo; // Asignar esfera visual en Inspector
+    private GameObject indicadorUIEscudo;
     private PlayerStats stats;
 
     public override void OnNetworkSpawn()
@@ -34,6 +35,20 @@ public class PlayerHealth : NetworkBehaviour
         // testear muerte
         if (Input.GetKeyDown(KeyCode.K))
             MorirServerRpc();
+
+        ActualizarUIEscudo();
+    }
+
+    private void ActualizarUIEscudo()
+    {
+        if (indicadorUIEscudo == null)
+            indicadorUIEscudo = GameObject.Find("IndicadorEscudo");
+
+        if (indicadorUIEscudo != null)
+        {
+            if (indicadorUIEscudo.activeSelf != tieneEscudo)
+                indicadorUIEscudo.SetActive(tieneEscudo);
+        }
     }
 
     public void RecibirDanio(float danio)
