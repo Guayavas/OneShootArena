@@ -83,24 +83,8 @@ public class PlayerShoot : NetworkBehaviour
 
         if (iconoRecarga != null)
             iconoRecarga.fillAmount = Mathf.Clamp01(tiempoTranscurrido / tiempoActualRecarga);
-
-        ActualizarIndicadoresUI();
     }
 
-    private void ActualizarIndicadoresUI()
-    {
-        // 1. Bonus Pasivo (por Kills)
-        if (indicadorBonus == null)
-            indicadorBonus = GameObject.Find("IndicadorBonusRecarga");
-
-        if (indicadorBonus != null)
-        {
-            bool activo = stats.bonusRecarga.Value > 1.0f;
-            if (indicadorBonus.activeSelf != activo)
-                indicadorBonus.SetActive(activo);
-        }
-
-    }
 
     [ServerRpc]
     void DispararServerRpc()
