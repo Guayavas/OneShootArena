@@ -160,7 +160,10 @@ public class GameManager : MonoBehaviour
             NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnected;
 
             int indexNave = PlayerPrefs.GetInt("NaveSeleccionada", 0);
-            seleccionNaves[NetworkManager.Singleton.LocalClientId] = indexNave;
+            // El Host siempre tiene ClientId 0 al inicio.
+            // Registramos la selección ANTES de StartHost para asegurar que esté lista.
+            seleccionNaves[0] = indexNave;
+            Debug.Log($"[HOST] Registrando nave local index {indexNave} para ClientId 0");
 
             NetworkManager.Singleton.StartHost();
             Debug.Log("Host iniciado");
@@ -253,6 +256,12 @@ public class GameManager : MonoBehaviour
         {
             indexNave = System.BitConverter.ToInt32(request.Payload, 0);
         }
+        else
+        {
+            // Si no hay payload (ej. el Host), usamos lo que ya registramos o 0
+            if (seleccionNaves.ContainsKey(request.ClientNetworkId))
+                indexNave = seleccionNaves[request.ClientNetworkId];
+        }
 
         response.Approved = true;
         response.CreatePlayerObject = false;
@@ -261,6 +270,7 @@ public class GameManager : MonoBehaviour
         if (NetworkManager.Singleton.IsServer)
         {
             seleccionNaves[request.ClientNetworkId] = indexNave;
+            Debug.Log($"[SERVER] Aprobando conexión. Cliente {request.ClientNetworkId} solicitó nave index {indexNave}");
         }
     }
 
@@ -273,6 +283,10 @@ public class GameManager : MonoBehaviour
         {
             indexNave = seleccion;
         }
+        else
+        {
+            Debug.LogWarning($"[SERVER] No se encontró selección para Cliente {clientId}, usando nave 0 por defecto.");
+        }
 
         NetorkPersistence persistence = FindObjectOfType<NetorkPersistence>();
         GameObject navePrefab = null;
@@ -280,6 +294,7 @@ public class GameManager : MonoBehaviour
         if (persistence != null)
         {
             navePrefab = persistence.ObtenerPrefabJugador(indexNave);
+            Debug.Log($"[SERVER] Cliente {clientId} conectado. Spawneando nave index {indexNave} (Prefab: {(navePrefab != null ? navePrefab.name : "NULL")})");
         }
 
         if (navePrefab != null)
