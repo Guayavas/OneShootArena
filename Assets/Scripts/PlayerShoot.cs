@@ -17,6 +17,9 @@ public class PlayerShoot : NetworkBehaviour
     private bool puedoDisparar = true;
     private PlayerStats stats;
 
+    [Header("Indicadores UI")]
+    // Se eliminó indicadorPowerUpRecarga por feedback del usuario
+
     //[Header("Indicadores UI")]
     // Se eliminó indicadorPowerUpRecarga por feedback del usuario
 
