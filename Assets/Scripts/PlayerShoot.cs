@@ -18,7 +18,7 @@ public class PlayerShoot : NetworkBehaviour
     private PlayerStats stats;
 
     [Header("Indicadores UI")]
-    [SerializeField] private GameObject indicadorPowerUpRecarga;
+    // Se eliminó indicadorPowerUpRecarga por feedback del usuario
 
     void Awake()
     {
@@ -100,21 +100,6 @@ public class PlayerShoot : NetworkBehaviour
                 indicadorBonus.SetActive(activo);
         }
 
-        // 2. PowerUp de Recarga (el que resetea el cooldown)
-        if (indicadorPowerUpRecarga == null)
-            indicadorPowerUpRecarga = GameObject.Find("IndicadorPWRRecarga");
-
-        if (indicadorPowerUpRecarga != null)
-        {
-            // Mostramos el indicador si el cooldown acaba de ser reseteado y no hemos disparado
-            // En este caso, si puedoDisparar es true pero tiempoTranscurrido se forzó al máximo
-            float tiempoActualRecarga = tiempoRecargaBase / stats.bonusRecarga.Value;
-            bool activo = puedoDisparar && (tiempoTranscurrido >= tiempoActualRecarga);
-            // Sin embargo, el usuario quiere que se vea cuando "lo tiene".
-            // Como este powerup es instantáneo, tal vez solo deba brillar un momento o hasta el siguiente disparo.
-            if (indicadorPowerUpRecarga.activeSelf != activo)
-                indicadorPowerUpRecarga.SetActive(activo);
-        }
     }
 
     [ServerRpc]
