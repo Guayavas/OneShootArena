@@ -142,12 +142,18 @@ public class GameManager : MonoBehaviour
             });
 
             UnityTransport transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
+
+            // Para WebGL en HTTPS (GitHub Pages), forzamos el uso de WebSockets (WSS)
+            bool useWSS = Application.platform == RuntimePlatform.WebGLPlayer;
+
             transport.SetRelayServerData(
                 allocation.RelayServer.IpV4,
                 (ushort)allocation.RelayServer.Port,
                 allocation.AllocationIdBytes,
                 allocation.Key,
-                allocation.ConnectionData
+                allocation.ConnectionData,
+                null,
+                useWSS
             );
 
             NetworkManager.Singleton.NetworkConfig.ConnectionApproval = true;
@@ -228,6 +234,9 @@ public class GameManager : MonoBehaviour
             JoinAllocation joinAllocation = await RelayService.Instance.JoinAllocationAsync(codigoRelay);
             UnityTransport transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
 
+            // Para WebGL en HTTPS (GitHub Pages), forzamos el uso de WebSockets (WSS)
+            bool useWSS = Application.platform == RuntimePlatform.WebGLPlayer;
+
             NetworkManager.Singleton.NetworkConfig.ConnectionApproval = true;
             transport.SetRelayServerData(
                 joinAllocation.RelayServer.IpV4,
@@ -235,7 +244,8 @@ public class GameManager : MonoBehaviour
                 joinAllocation.AllocationIdBytes,
                 joinAllocation.Key,
                 joinAllocation.ConnectionData,
-                joinAllocation.HostConnectionData
+                joinAllocation.HostConnectionData,
+                useWSS
             );
 
             NetworkManager.Singleton.NetworkConfig.ConnectionData = System.BitConverter.GetBytes(indexNave);
