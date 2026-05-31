@@ -762,7 +762,7 @@ PlayerSettings:
   ps4IncludedModules: []
   ps4attribVROutputEnabled: 0
   monoEnv: 
-  splashScreenBackgroundSourceLandscape: {fileID: 21300000, guid: a3b12335dc21a144ea84c3597600ab8e, type: 3}
+  splashScreenBackgroundSourceLandscape: {fileID: 21300000, guid: 61ca6a6fa9568374b81594d6cae164cd, type: 3}
   splashScreenBackgroundSourcePortrait: {fileID: 0}
   blurSplashScreenBackground: 1
   spritePackerPolicy: 
