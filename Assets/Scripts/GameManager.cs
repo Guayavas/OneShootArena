@@ -129,11 +129,30 @@ public class GameManager : MonoBehaviour
     {
         try
         {
+            // Listamos las regiones disponibles para debuggear y encontrar el ID exacto
+            try
+            {
+                var regiones = await RelayService.Instance.ListRegionsAsync();
+                Debug.Log("--- Regiones Relay Disponibles ---");
+                foreach (var r in regiones)
+                {
+                    Debug.Log($"ID: {r.Id} | Nombre: {r.Id}");
+                }
+                Debug.Log("----------------------------------");
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning("No se pudo obtener la lista de regiones: " + ex.Message);
+            }
+
             // En WebGL QoS falla, así que intentamos forzar una región (us-east-1 suele ser estable)
             Allocation allocation;
             if (Application.platform == RuntimePlatform.WebGLPlayer)
             {
-                allocation = await RelayService.Instance.CreateAllocationAsync(maxJugadores - 1, "us-east1");
+                // Intentamos usar us-east-1 (con guion) que es el estándar de Unity
+                // Pero imprimimos antes para que el usuario verifique.
+                Debug.Log("Intentando alocación en región us-east-1...");
+                allocation = await RelayService.Instance.CreateAllocationAsync(maxJugadores - 1, "us-east-1");
             }
             else
             {
