@@ -67,7 +67,6 @@
         productName: "OneShootArena",
         productVersion: "0.2",
         showBanner: unityShowBanner,
-        autoSyncPersistentDataPath: true,
       };
 
       // By default Unity keeps WebGL canvas render target size matched with
@@ -87,17 +86,6 @@
 
       canvas.style.background = "url('" + buildUrl + "/docs.jpg') center / cover";
       loadingBar.style.display = "block";
-
-      // Resuming AudioContext on user gesture to avoid browser warnings
-      function resumeAudio() {
-        if (typeof (AudioContext) !== 'undefined' && AudioContext.state === 'suspended') {
-          AudioContext.resume();
-        } else if (typeof (webkitAudioContext) !== 'undefined' && webkitAudioContext.state === 'suspended') {
-          webkitAudioContext.resume();
-        }
-        window.removeEventListener('click', resumeAudio);
-      }
-      window.addEventListener('click', resumeAudio);
 
       var script = document.createElement("script");
       script.src = loaderUrl;
