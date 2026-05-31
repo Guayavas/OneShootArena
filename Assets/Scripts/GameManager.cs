@@ -102,7 +102,7 @@ public class GameManager : MonoBehaviour
                 if (lobbyActual != null) break;
 
                 intentos++;
-                await Task.Delay(2000);
+                await Task.Delay(1000);
             }
 
             if (lobbyActual != null)
@@ -129,7 +129,35 @@ public class GameManager : MonoBehaviour
     {
         try
         {
-            Allocation allocation = await RelayService.Instance.CreateAllocationAsync(maxJugadores - 1);
+            // Listamos las regiones disponibles para debuggear y encontrar el ID exacto
+            try
+            {
+                var regiones = await RelayService.Instance.ListRegionsAsync();
+                Debug.Log("--- Regiones Relay Disponibles ---");
+                foreach (var r in regiones)
+                {
+                    Debug.Log($"ID: {r.Id} | Nombre: {r.Id}");
+                }
+                Debug.Log("----------------------------------");
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning("No se pudo obtener la lista de regiones: " + ex.Message);
+            }
+
+            // En WebGL QoS falla, así que intentamos forzar una región (us-east-1 suele ser estable)
+            Allocation allocation;
+            if (Application.platform == RuntimePlatform.WebGLPlayer)
+            {
+                // Intentamos usar us-east-1 (con guion) que es el estándar de Unity
+                // Pero imprimimos antes para que el usuario verifique.
+                Debug.Log("Intentando alocación en región us-east-1...");
+                allocation = await RelayService.Instance.CreateAllocationAsync(maxJugadores - 1, "us-east-1");
+            }
+            else
+            {
+                allocation = await RelayService.Instance.CreateAllocationAsync(maxJugadores - 1);
+            }
             string joinCode = await RelayService.Instance.GetJoinCodeAsync(allocation.AllocationId);
             Debug.Log("Relay Join Code: " + joinCode);
 
@@ -142,6 +170,8 @@ public class GameManager : MonoBehaviour
             });
 
             UnityTransport transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
+            // Forzamos el protocolo a RelayUnityTransport para evitar el error de IPC
+            //transport.Protocol = UnityTransport.ProtocolType.RelayUnityTransport;
 
             // Para WebGL en HTTPS (GitHub Pages), forzamos el uso de WebSockets (WSS)
             bool useWSS = Application.platform == RuntimePlatform.WebGLPlayer;
@@ -233,6 +263,8 @@ public class GameManager : MonoBehaviour
 
             JoinAllocation joinAllocation = await RelayService.Instance.JoinAllocationAsync(codigoRelay);
             UnityTransport transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
+            // Forzamos el protocolo a RelayUnityTransport para evitar el error de IPC
+            //transport.Protocol = UnityTransport.ProtocolType.RelayUnityTransport;
 
             // Para WebGL en HTTPS (GitHub Pages), forzamos el uso de WebSockets (WSS)
             bool useWSS = Application.platform == RuntimePlatform.WebGLPlayer;
