@@ -145,14 +145,14 @@ public class GameManager : MonoBehaviour
                 Debug.LogWarning("No se pudo obtener la lista de regiones: " + ex.Message);
             }
 
-            // En WebGL QoS falla, así que intentamos forzar una región (us-east-1 suele ser estable)
+            // En WebGL QoS falla, así que intentamos forzar una región (southamerica-east1 suele ser estable)
             Allocation allocation;
             if (Application.platform == RuntimePlatform.WebGLPlayer)
             {
-                // Intentamos usar us-east-1 (con guion) que es el estándar de Unity
+                // Intentamos usar southamerica-east1 (con guion) que es el estándar de Unity
                 // Pero imprimimos antes para que el usuario verifique.
-                Debug.Log("Intentando alocación en región us-east-1...");
-                allocation = await RelayService.Instance.CreateAllocationAsync(maxJugadores - 1, "us-east-1");
+                Debug.Log("Intentando alocación en región southamerica-east1...");
+                allocation = await RelayService.Instance.CreateAllocationAsync(maxJugadores - 1, "southamerica-east1");
             }
             else
             {
