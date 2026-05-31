@@ -102,7 +102,7 @@ public class GameManager : MonoBehaviour
                 if (lobbyActual != null) break;
 
                 intentos++;
-                await Task.Delay(2000);
+                await Task.Delay(1000);
             }
 
             if (lobbyActual != null)
@@ -133,7 +133,7 @@ public class GameManager : MonoBehaviour
             Allocation allocation;
             if (Application.platform == RuntimePlatform.WebGLPlayer)
             {
-                allocation = await RelayService.Instance.CreateAllocationAsync(maxJugadores - 1, "us-east-1");
+                allocation = await RelayService.Instance.CreateAllocationAsync(maxJugadores - 1, "us-east1");
             }
             else
             {
@@ -152,7 +152,7 @@ public class GameManager : MonoBehaviour
 
             UnityTransport transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
             // Forzamos el protocolo a RelayUnityTransport para evitar el error de IPC
-            transport.Protocol = UnityTransport.ProtocolType.RelayUnityTransport;
+            //transport.Protocol = UnityTransport.ProtocolType.RelayUnityTransport;
 
             // Para WebGL en HTTPS (GitHub Pages), forzamos el uso de WebSockets (WSS)
             bool useWSS = Application.platform == RuntimePlatform.WebGLPlayer;
@@ -245,7 +245,7 @@ public class GameManager : MonoBehaviour
             JoinAllocation joinAllocation = await RelayService.Instance.JoinAllocationAsync(codigoRelay);
             UnityTransport transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
             // Forzamos el protocolo a RelayUnityTransport para evitar el error de IPC
-            transport.Protocol = UnityTransport.ProtocolType.RelayUnityTransport;
+            //transport.Protocol = UnityTransport.ProtocolType.RelayUnityTransport;
 
             // Para WebGL en HTTPS (GitHub Pages), forzamos el uso de WebSockets (WSS)
             bool useWSS = Application.platform == RuntimePlatform.WebGLPlayer;
