@@ -15,6 +15,8 @@ GameObject:
   - component: {fileID: -6101818827191371145}
   - component: {fileID: -5314926722713316336}
   - component: {fileID: 5593103312026587779}
+  - component: {fileID: -4930007632867601278}
+  - component: {fileID: -2712520464622989968}
   - component: {fileID: -7156331633788276743}
   - component: {fileID: -6117517091477771366}
   m_Layer: 0
@@ -169,6 +171,69 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   velocidadBase: 30
   velocidadRotacion: 7
+--- !u!114 &-4930007632867601278
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 470579141693910612}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 51dbd7798f3a29c4fb07fcc552374b81, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+--- !u!114 &-2712520464622989968
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 470579141693910612}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6c352407b89859344b36c10e4e0d4d93, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  score:
+    m_InternalValue: 0
+  bonusRecarga:
+    m_InternalValue: 1
+  nickname:
+    m_InternalValue:
+      utf8LengthInBytes: 7
+      bytes:
+        offset0000:
+          byte0000: 74
+          byte0001: 117
+          byte0002: 103
+          byte0003: 97
+          byte0004: 100
+          byte0005: 111
+          byte0006: 114
+          byte0007: 0
+          byte0008: 0
+          byte0009: 0
+          byte0010: 0
+          byte0011: 0
+          byte0012: 0
+          byte0013: 0
+          byte0014: 0
+          byte0015: 0
+        byte0016: 0
+        byte0017: 0
+        byte0018: 0
+        byte0019: 0
+        byte0020: 0
+        byte0021: 0
+        byte0022: 0
+        byte0023: 0
+        byte0024: 0
+        byte0025: 0
+        byte0026: 0
+        byte0027: 0
+        byte0028: 0
+        byte0029: 0
 --- !u!114 &-7156331633788276743
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -240,7 +305,8 @@ MonoBehaviour:
   prefabBala: {fileID: 8981013356199501457, guid: 13533d2ed8908c24da61fb2ef6a43561, type: 3}
   puntoDisparo: {fileID: 5597648924850829547}
   velocidadBala: 15
-  tiempoRecarga: 3
+  tiempoRecargaBase: 3
+  indicadorBonus: {fileID: 0}
 --- !u!1001 &4285313410905877975
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -255,7 +321,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 232f43f7721423b459560eb0fe3c29bd, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0
+      value: 0.2
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 232f43f7721423b459560eb0fe3c29bd, type: 3}
       propertyPath: m_LocalPosition.z

@@ -142,12 +142,18 @@ public class GameManager : MonoBehaviour
             });
 
             UnityTransport transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
+
+            // Para WebGL en HTTPS (GitHub Pages), forzamos el uso de WebSockets (WSS)
+            bool useWSS = Application.platform == RuntimePlatform.WebGLPlayer;
+
             transport.SetRelayServerData(
                 allocation.RelayServer.IpV4,
                 (ushort)allocation.RelayServer.Port,
                 allocation.AllocationIdBytes,
                 allocation.Key,
-                allocation.ConnectionData
+                allocation.ConnectionData,
+                null,
+                useWSS
             );
 
             NetworkManager.Singleton.NetworkConfig.ConnectionApproval = true;
@@ -160,7 +166,10 @@ public class GameManager : MonoBehaviour
             NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnected;
 
             int indexNave = PlayerPrefs.GetInt("NaveSeleccionada", 0);
-            seleccionNaves[NetworkManager.Singleton.LocalClientId] = indexNave;
+            // El Host siempre tiene ClientId 0 al inicio.
+            // Registramos la selección ANTES de StartHost para asegurar que esté lista.
+            seleccionNaves[0] = indexNave;
+            Debug.Log($"[HOST] Registrando nave local index {indexNave} para ClientId 0");
 
             NetworkManager.Singleton.StartHost();
             Debug.Log("Host iniciado");
@@ -225,6 +234,9 @@ public class GameManager : MonoBehaviour
             JoinAllocation joinAllocation = await RelayService.Instance.JoinAllocationAsync(codigoRelay);
             UnityTransport transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
 
+            // Para WebGL en HTTPS (GitHub Pages), forzamos el uso de WebSockets (WSS)
+            bool useWSS = Application.platform == RuntimePlatform.WebGLPlayer;
+
             NetworkManager.Singleton.NetworkConfig.ConnectionApproval = true;
             transport.SetRelayServerData(
                 joinAllocation.RelayServer.IpV4,
@@ -232,10 +244,12 @@ public class GameManager : MonoBehaviour
                 joinAllocation.AllocationIdBytes,
                 joinAllocation.Key,
                 joinAllocation.ConnectionData,
-                joinAllocation.HostConnectionData
+                joinAllocation.HostConnectionData,
+                useWSS
             );
 
             NetworkManager.Singleton.NetworkConfig.ConnectionData = System.BitConverter.GetBytes(indexNave);
+            Debug.Log("Uniéndose con Nave Index: " + indexNave);
             NetworkManager.Singleton.StartClient();
             Debug.Log("Cliente unido al Relay");
         }
@@ -252,6 +266,12 @@ public class GameManager : MonoBehaviour
         {
             indexNave = System.BitConverter.ToInt32(request.Payload, 0);
         }
+        else
+        {
+            // Si no hay payload (ej. el Host), usamos lo que ya registramos o 0
+            if (seleccionNaves.ContainsKey(request.ClientNetworkId))
+                indexNave = seleccionNaves[request.ClientNetworkId];
+        }
 
         response.Approved = true;
         response.CreatePlayerObject = false;
@@ -260,6 +280,7 @@ public class GameManager : MonoBehaviour
         if (NetworkManager.Singleton.IsServer)
         {
             seleccionNaves[request.ClientNetworkId] = indexNave;
+            Debug.Log($"[SERVER] Aprobando conexión. Cliente {request.ClientNetworkId} solicitó nave index {indexNave}");
         }
     }
 
@@ -272,6 +293,10 @@ public class GameManager : MonoBehaviour
         {
             indexNave = seleccion;
         }
+        else
+        {
+            Debug.LogWarning($"[SERVER] No se encontró selección para Cliente {clientId}, usando nave 0 por defecto.");
+        }
 
         NetorkPersistence persistence = FindObjectOfType<NetorkPersistence>();
         GameObject navePrefab = null;
@@ -279,6 +304,7 @@ public class GameManager : MonoBehaviour
         if (persistence != null)
         {
             navePrefab = persistence.ObtenerPrefabJugador(indexNave);
+            Debug.Log($"[SERVER] Cliente {clientId} conectado. Spawneando nave index {indexNave} (Prefab: {(navePrefab != null ? navePrefab.name : "NULL")})");
         }
 
         if (navePrefab != null)

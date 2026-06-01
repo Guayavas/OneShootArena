@@ -21,14 +21,10 @@ public class PlayerHealth : NetworkBehaviour
     private void AsignarStats()
     {
         if (stats != null) return;
-
-        stats = GetComponentInParent<PlayerStats>();
-
-        if (stats == null)
-        {
-            GameObject gm = GameObject.Find("GameManager");
-            if (gm != null) stats = gm.GetComponent<PlayerStats>();
-        }
+        stats = GetComponent<PlayerStats>();
+        if (stats == null) stats = GetComponentInParent<PlayerStats>();
+        if (stats == null && NetworkObject != null)
+            stats = NetworkObject.GetComponent<PlayerStats>();
     }
 
     void Update()
@@ -152,5 +148,10 @@ public class PlayerHealth : NetworkBehaviour
     {
         if (visualEscudo != null)
             visualEscudo.SetActive(activado);
+    }
+
+    public bool TieneEscudoActivo()
+    {
+        return tieneEscudo;
     }
 }

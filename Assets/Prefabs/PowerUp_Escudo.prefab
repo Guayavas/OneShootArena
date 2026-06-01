@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 3168103767765759211}
   - component: {fileID: -1886938736792964015}
   - component: {fileID: 323915700960936022}
+  - component: {fileID: -2608134835598135144}
   m_Layer: 0
   m_Name: PowerUp_Escudo
   m_TagString: Untagged
@@ -143,4 +144,20 @@ MonoBehaviour:
   tipo: 0
   duracion: 5
   multiplicadorVelocidad: 1.5
-  reduccionRecarga: 0.5
+  puntosSuministro: 50
+--- !u!114 &-2608134835598135144
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 432100416316015795}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 82b083ec6b2ced64e8fba788d0866d4b, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  velocidadRotacion: 50
+  ejeRotacion: {x: 0, y: 1, z: 0}
+  amplitudBob: 0.2
+  frecuenciaBob: 2

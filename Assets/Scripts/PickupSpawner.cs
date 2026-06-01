@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -7,10 +8,12 @@ public class PickupSpawner : NetworkBehaviour
     public GameObject prefabPickup;
 
     [Header("Configuración")]
-    public float tiempoReaparicion = 20f;
+    public float tiempoEntreSpawns = 10f;
+    public int maxPickups = 5;
     public float alturaSpawn = 0.1023054f;
+    public float radioSpawn = 15f;
 
-    private GameObject instanciaActual;
+    private List<GameObject> pickupsActivos = new List<GameObject>();
     private float cronometro;
 
     public override void OnNetworkSpawn()
@@ -20,17 +23,22 @@ public class PickupSpawner : NetworkBehaviour
             enabled = false;
             return;
         }
-        SpawnPickup();
+        cronometro = tiempoEntreSpawns;
     }
 
     void Update()
     {
         if (!IsServer) return;
 
-        if (instanciaActual == null || !instanciaActual.GetComponent<NetworkObject>().IsSpawned)
+        // Limpiar lista de objetos destruidos o despawneados
+        pickupsActivos.RemoveAll(item => item == null || !item.GetComponent<NetworkObject>().IsSpawned);
+
+        cronometro -= Time.deltaTime;
+        if (cronometro <= 0f)
         {
-            cronometro += Time.deltaTime;
-            if (cronometro >= tiempoReaparicion)
+            cronometro = tiempoEntreSpawns;
+
+            if (pickupsActivos.Count < maxPickups)
             {
                 SpawnPickup();
             }
@@ -41,21 +49,28 @@ public class PickupSpawner : NetworkBehaviour
     {
         if (prefabPickup == null) return;
 
-        Vector3 posicionSpawn = transform.position + new Vector3(0, alturaSpawn, 0);
-        instanciaActual = Instantiate(prefabPickup, posicionSpawn, Quaternion.identity);
+        Vector2 circuloAleatorio = Random.insideUnitCircle * radioSpawn;
+        Vector3 posicionSpawn = transform.position + new Vector3(circuloAleatorio.x, alturaSpawn, circuloAleatorio.y);
 
-        NetworkObject netObj = instanciaActual.GetComponent<NetworkObject>();
+        GameObject instancia = Instantiate(prefabPickup, posicionSpawn, Quaternion.identity);
+
+        NetworkObject netObj = instancia.GetComponent<NetworkObject>();
         if (netObj != null)
         {
             netObj.Spawn();
+            pickupsActivos.Add(instancia);
         }
-
-        cronometro = 0f;
+        else
+        {
+            Debug.LogError($"El prefab de Pickup {prefabPickup.name} no tiene NetworkObject.");
+            Destroy(instancia);
+        }
     }
 
     private void OnDrawGizmos()
     {
         Gizmos.color = Color.green;
+        Gizmos.DrawWireSphere(transform.position, radioSpawn);
         Gizmos.DrawWireCube(transform.position + new Vector3(0, alturaSpawn, 0), Vector3.one * 0.5f);
     }
 }

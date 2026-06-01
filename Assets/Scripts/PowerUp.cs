@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class PowerUp : NetworkBehaviour
 {
-    public enum TipoPowerUp { Escudo, Velocidad, Recarga, Suministro }
+    public enum TipoPowerUp { Escudo, Velocidad, Recarga, Suministro, PickupRecarga }
     public TipoPowerUp tipo;
 
     [Header("Ajustes")]
@@ -27,16 +27,17 @@ public class PowerUp : NetworkBehaviour
 
     private void AplicarEfecto(GameObject jugador)
     {
-        // El objeto 'jugador' suele ser el root o tener los componentes
-        PlayerHealth health = jugador.GetComponent<PlayerHealth>();
-        PlayerMovement movement = jugador.GetComponent<PlayerMovement>();
-        PlayerShoot shoot = jugador.GetComponent<PlayerShoot>();
-        PlayerStats stats = jugador.GetComponent<PlayerStats>();
-
-        // Si no están en el objeto tocado, buscamos en el root
+        // Búsqueda robusta: buscamos en el objeto tocado, en sus padres y en sus hijos.
+        PlayerHealth health = jugador.GetComponentInChildren<PlayerHealth>();
         if (health == null) health = jugador.GetComponentInParent<PlayerHealth>();
+
+        PlayerMovement movement = jugador.GetComponentInChildren<PlayerMovement>();
         if (movement == null) movement = jugador.GetComponentInParent<PlayerMovement>();
+
+        PlayerShoot shoot = jugador.GetComponentInChildren<PlayerShoot>();
         if (shoot == null) shoot = jugador.GetComponentInParent<PlayerShoot>();
+
+        PlayerStats stats = jugador.GetComponentInChildren<PlayerStats>();
         if (stats == null) stats = jugador.GetComponentInParent<PlayerStats>();
 
         switch (tipo)
@@ -48,10 +49,15 @@ public class PowerUp : NetworkBehaviour
                 if (movement != null) movement.AplicarBonoVelocidad(multiplicadorVelocidad, duracion);
                 break;
             case TipoPowerUp.Recarga:
-                if (shoot != null) shoot.ReducirTiempoRecarga();
+                // El power-up de recarga resetea el cooldown inmediatamente
+                if (shoot != null) shoot.ResetearCooldown();
                 break;
             case TipoPowerUp.Suministro:
                 if (stats != null) stats.SumarPuntos(puntosSuministro);
+                break;
+            case TipoPowerUp.PickupRecarga:
+                // El pickup pequeño reduce 0.1s el cooldown actual
+                if (shoot != null) shoot.ReducirTiempoRecargaTemporal(0.1f);
                 break;
         }
 

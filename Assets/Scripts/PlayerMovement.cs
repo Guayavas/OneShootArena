@@ -90,4 +90,9 @@ public class PlayerMovement : NetworkBehaviour
             rb.rotation = Quaternion.Slerp(rb.rotation, rotacionObjetivo, velocidadRotacion * Time.fixedDeltaTime);
         }
     }
+
+    public bool TieneBonoVelocidad()
+    {
+        return velocidadActual > velocidadBase;
+    }
 }

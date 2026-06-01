@@ -34,20 +34,25 @@ public class ShipSelectionManager : MonoBehaviour
     public void SiguienteNave()
     {
         if (naves == null || naves.Length == 0) return;
-        indiceActual = (indiceActual + 1) % naves.Length;
-        ActualizarUI();
-        GuardarSeleccion();
+
+        if (indiceActual < naves.Length - 1)
+        {
+            indiceActual++;
+            ActualizarUI();
+            GuardarSeleccion();
+        }
     }
 
     public void AnteriorNave()
     {
         if (naves == null || naves.Length == 0) return;
-        indiceActual--;
-        if (indiceActual < 0)
-            indiceActual = naves.Length - 1;
 
-        ActualizarUI();
-        GuardarSeleccion();
+        if (indiceActual > 0)
+        {
+            indiceActual--;
+            ActualizarUI();
+            GuardarSeleccion();
+        }
     }
 
     public int ObtenerIndiceSeleccionado()
@@ -59,7 +64,7 @@ public class ShipSelectionManager : MonoBehaviour
     {
         PlayerPrefs.SetInt("NaveSeleccionada", indiceActual);
         PlayerPrefs.Save();
-        Debug.Log("Selección guardada: " + indiceActual);
+        Debug.Log("SHIP SELECTION: Selección guardada en PlayerPrefs: " + indiceActual);
     }
 
     private void ActualizarUI()
