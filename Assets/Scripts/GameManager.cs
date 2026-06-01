@@ -173,9 +173,10 @@ public class GameManager : MonoBehaviour
                 return;
             }
 
-            // Para WebGL en HTTPS (GitHub Pages), forzamos el uso de WebSockets (WSS)
-            string connectionType = Application.platform == RuntimePlatform.WebGLPlayer ? "wss" : "udp";
-            Debug.Log("[LOG] IniciarRelay: Plataforma detectada: " + Application.platform + ". Usando conexión: " + connectionType);
+            // Determinamos el protocolo según la configuración del transporte (WebSockets vs UDP)
+            // En WebGL siempre debe ser "wss"
+            string connectionType = transport.UseWebSockets ? "wss" : "udp";
+            Debug.Log($"[LOG] IniciarRelay: Protocolo detectado en UnityTransport: {(transport.UseWebSockets ? "WebSockets" : "UDP")}. Usando Relay connectionType: {connectionType}");
 
             var relayServerData = new RelayServerData(allocation, connectionType);
             transport.SetRelayServerData(relayServerData);
@@ -274,9 +275,10 @@ public class GameManager : MonoBehaviour
                 return;
             }
 
-            // Para WebGL en HTTPS (GitHub Pages), forzamos el uso de WebSockets (WSS)
-            string connectionType = Application.platform == RuntimePlatform.WebGLPlayer ? "wss" : "udp";
-            Debug.Log("[LOG] UnirseALobby: Plataforma detectada: " + Application.platform + ". Usando conexión: " + connectionType);
+            // Determinamos el protocolo según la configuración del transporte (WebSockets vs UDP)
+            // En WebGL siempre debe ser "wss"
+            string connectionType = transport.UseWebSockets ? "wss" : "udp";
+            Debug.Log($"[LOG] UnirseALobby: Protocolo detectado en UnityTransport: {(transport.UseWebSockets ? "WebSockets" : "UDP")}. Usando Relay connectionType: {connectionType}");
 
             var relayServerData = new RelayServerData(joinAllocation, connectionType);
             transport.SetRelayServerData(relayServerData);
