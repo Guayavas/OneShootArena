@@ -5,7 +5,6 @@ const contentToCache = [
     "Build/docs.data",
     "Build/docs.wasm",
     "TemplateData/style.css"
-
 ];
 
 self.addEventListener('install', function (e) {
@@ -19,15 +18,25 @@ self.addEventListener('install', function (e) {
 });
 
 self.addEventListener('fetch', function (e) {
+    // Only handle GET requests and exclude Unity Services from caching
+    if (e.request.method !== 'GET' || e.request.url.includes('services.api.unity.com')) {
+        return;
+    }
+
     e.respondWith((async function () {
       let response = await caches.match(e.request);
       console.log(`[Service Worker] Fetching resource: ${e.request.url}`);
       if (response) { return response; }
 
       response = await fetch(e.request);
-      const cache = await caches.open(cacheName);
-      console.log(`[Service Worker] Caching new resource: ${e.request.url}`);
-      cache.put(e.request, response.clone());
+
+      // Only cache successful GET responses for static assets
+      if (response && response.status === 200 && response.type === 'basic') {
+          const cache = await caches.open(cacheName);
+          console.log(`[Service Worker] Caching new resource: ${e.request.url}`);
+          cache.put(e.request, response.clone());
+      }
+
       return response;
     })());
 });
