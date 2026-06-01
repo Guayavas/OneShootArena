@@ -5929,6 +5929,10 @@ PrefabInstance:
       propertyPath: m_ProtocolType
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 4680124829825380031, guid: f39c4cc93a5b27b449779ceef0273bdb, type: 3}
+      propertyPath: m_UseWebSockets
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 5534950994567106791, guid: f39c4cc93a5b27b449779ceef0273bdb, type: 3}
       propertyPath: m_Name
       value: NetworkManager
