@@ -707,7 +707,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &349037285
 RectTransform:
   m_ObjectHideFlags: 0
@@ -2114,10 +2114,10 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: NameNave
+  m_text: 
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2100000, guid: 42df1c7856584b6b8db9a509b6b10074, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 7db4ae400f3fa214fa6461401db174f5, type: 2}
+  m_sharedMaterial: {fileID: 8132591662314319488, guid: 7db4ae400f3fa214fa6461401db174f5, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -2207,8 +2207,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -0.00001049, y: -167.5851}
-  m_SizeDelta: {x: 137.1882, y: 31.4689}
+  m_AnchoredPosition: {x: 0.000013351, y: -156.82}
+  m_SizeDelta: {x: 202.7403, y: 35.1398}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &860460916
 GameObject:
@@ -4367,11 +4367,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   naves:
-  - nombre: NaveA
+  - nombre: Falcon-01
     preview: {fileID: 21300000, guid: 1fa8f804b40c25347a7e2374ca66f128, type: 3}
-  - nombre: NaveB
+  - nombre: Eclipse-X
     preview: {fileID: 21300000, guid: 2a93d3db0ee1e134ead585925fae8a08, type: 3}
-  - nombre: NaveC
+  - nombre: Nova Striker
     preview: {fileID: 21300000, guid: 4743f7c7cd6789b4eb753bf43699a809, type: 3}
   imagenPreview: {fileID: 2089448649}
   textoNombre: {fileID: 857073437}
