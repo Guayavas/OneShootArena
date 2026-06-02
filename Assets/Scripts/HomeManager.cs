@@ -64,7 +64,7 @@ public class HomeManager : MonoBehaviour
 
         PlayerPrefs.Save();
 
-        SceneManager.LoadScene("Game");
+        SceneManager.LoadScene("Loading");
     }
 
     public void IrHistoria()
