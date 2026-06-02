@@ -89,8 +89,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 1, y: 0.6891566, z: 1.5}
-  m_Center: {x: 0, y: 0.38542172, z: 0}
+  m_Size: {x: 1, y: 1.0774429, z: 1.5}
+  m_Center: {x: 0, y: 0.5795648, z: 0}
 --- !u!114 &-219309558800121783
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -181,8 +181,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 51dbd7798f3a29c4fb07fcc552374b81, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &4404460018208459721
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -193,8 +193,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c352407b89859344b36c10e4e0d4d93, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
   score:
     m_InternalValue: 0
   bonusRecarga:

@@ -386,8 +386,8 @@ MonoBehaviour:
   tipText: {fileID: 1805351882}
   gameSceneName: Game
   loadingSceneName: Loading
-  minimumLoadingTime: 6
-  extraWaitAfterGameLoaded: 10
+  minimumLoadingTime: 3
+  extraWaitAfterGameLoaded: 5
   tips:
   - Recoge power-ups para mejorar escudo, velocidad y recarga.
   - "Usa el escudo cuando est\xE9s en peligro.\n"
