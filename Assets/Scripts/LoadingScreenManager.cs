@@ -1,5 +1,6 @@
 using System.Collections;
 using TMPro;
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -16,9 +17,9 @@ public class LoadingScreenManager : MonoBehaviour
     [SerializeField] private string gameSceneName = "Game";
     [SerializeField] private string loadingSceneName = "Loading";
 
-    [Header("Tiempos")]
-    [SerializeField] private float minimumLoadingTime = 6f;
-    [SerializeField] private float extraWaitAfterGameLoaded = 3f;
+    [Header("Tiempos y Seguridad")]
+    [SerializeField] private float minimumLoadingTime = 2f;
+    [SerializeField] private float timeoutSeconds = 20f;
 
     [Header("Consejos")]
     [TextArea]
@@ -32,7 +33,7 @@ public class LoadingScreenManager : MonoBehaviour
 
     private IEnumerator LoadGameAdditive()
     {
-        SetProgress("Cargando partida...", 0f);
+        SetProgress("Cargando mapa...", 0.1f);
 
         AsyncOperation loadOperation = SceneManager.LoadSceneAsync(gameSceneName, LoadSceneMode.Additive);
 
@@ -42,52 +43,59 @@ public class LoadingScreenManager : MonoBehaviour
             yield break;
         }
 
-        loadOperation.allowSceneActivation = true;
+        // 1. Esperar a que la escena se cargue físicamente
+        while (!loadOperation.isDone)
+        {
+            float progress = Mathf.Clamp01(loadOperation.progress / 0.9f) * 0.5f;
+            SetProgress("Cargando recursos...", progress);
+            yield return null;
+        }
 
+        // 2. IMPORTANTE: Activar la escena inmediatamente para que el spawn ocurra en ella
+        Scene gameScene = SceneManager.GetSceneByName(gameSceneName);
+        if (gameScene.IsValid())
+        {
+            SceneManager.SetActiveScene(gameScene);
+            Debug.Log("[LOADING] Escena de juego activada. Esperando spawn de nave...");
+        }
+
+        // 3. Esperar dinámicamente a que la nave aparezca o se cumpla el tiempo mínimo
         float timer = 0f;
+        bool spawned = false;
 
-        while (!loadOperation.isDone || timer < minimumLoadingTime)
+        while (timer < timeoutSeconds)
         {
             timer += Time.deltaTime;
 
-            float sceneProgress = Mathf.Clamp01(loadOperation.progress / 0.9f);
-            float timeProgress = Mathf.Clamp01(timer / minimumLoadingTime);
+            // Verificar si el jugador ya tiene su objeto asignado en red
+            if (NetworkManager.Singleton != null &&
+                NetworkManager.Singleton.IsClient &&
+                NetworkManager.Singleton.LocalClient != null &&
+                NetworkManager.Singleton.LocalClient.PlayerObject != null)
+            {
+                spawned = true;
+                if (timer >= minimumLoadingTime) break;
+            }
 
-            float progress = Mathf.Min(sceneProgress, timeProgress) * 0.85f;
-
-            SetProgress("Cargando partida...", progress);
+            float progress = 0.5f + Mathf.Clamp01(timer / minimumLoadingTime) * 0.4f;
+            SetProgress("Esperando a otros jugadores...", progress);
 
             yield return null;
         }
 
-        SetProgress("Preparando jugador...", 0.90f);
-
-        yield return new WaitForSeconds(extraWaitAfterGameLoaded);
-
-        SetProgress("Listo", 1f);
-
-        yield return new WaitForSeconds(0.4f);
-
-        Scene gameScene = SceneManager.GetSceneByName(gameSceneName);
-
-        if (gameScene.IsValid())
+        if (!spawned)
         {
-            SceneManager.SetActiveScene(gameScene);
-        }
-        else
-        {
-            Debug.LogWarning("No se encontró la escena del juego: " + gameSceneName);
+            Debug.LogWarning("[LOADING] Tiempo de espera agotado o nave no detectada, procediendo de todos modos.");
         }
 
+        SetProgress("¡Listo!", 1f);
+        yield return new WaitForSeconds(0.5f);
+
+        // 4. Descargar la escena de carga
         Scene loadingScene = SceneManager.GetSceneByName(loadingSceneName);
-
         if (loadingScene.IsValid())
         {
             SceneManager.UnloadSceneAsync(loadingScene);
-        }
-        else
-        {
-            Debug.LogWarning("No se encontró la escena de loading: " + loadingSceneName);
         }
     }
 

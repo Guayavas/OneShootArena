@@ -387,7 +387,7 @@ MonoBehaviour:
   gameSceneName: Game
   loadingSceneName: Loading
   minimumLoadingTime: 3
-  extraWaitAfterGameLoaded: 5
+  timeoutSeconds: 5
   tips:
   - Recoge power-ups para mejorar escudo, velocidad y recarga.
   - "Usa el escudo cuando est\xE9s en peligro.\n"
