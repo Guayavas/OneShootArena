@@ -155,8 +155,37 @@ public class GameManager : MonoBehaviour
     {
         try
         {
-            Allocation allocation =
-                await RelayService.Instance.CreateAllocationAsync(maxJugadores - 1);
+            Allocation allocation;
+
+            // 🔥 FIX WEBGL: Evitar bug de QoS consultando y pasando el string de la región directamente
+            if (Application.platform == RuntimePlatform.WebGLPlayer)
+            {
+                Debug.Log("[LOG RELAY] Solicitando lista de regiones desde WebGL...");
+
+                List<Region> regionesDisponibles = await RelayService.Instance.ListRegionsAsync();
+                string regionIdElegida = null;
+
+                // Este bucle te va a pintar en la consola del navegador todos los IDs reales de Unity
+                foreach (var reg in regionesDisponibles)
+                {
+                    Debug.Log($"[REGIÓN DISPONIBLE] Nombre: {reg.Description} | ID exacto: {reg.Id}");
+                }
+
+                if (regionesDisponibles != null && regionesDisponibles.Count > 0)
+                {
+                    // Tomamos el string puro de la primera región (ej: "us-east-1" o "eu-central-1")
+                    regionIdElegida = regionesDisponibles[0].Id;
+                    Debug.Log($"[LOG RELAY] Región asignada automáticamente: {regionIdElegida}");
+                }
+
+                // Se pasa directamente el entero y el string de la región (sin objetos raros)
+                allocation = await RelayService.Instance.CreateAllocationAsync(maxJugadores - 1, regionIdElegida);
+            }
+            else
+            {
+                // En el editor de PC se deja por defecto (pasa null de forma interna para usar QoS nativo)
+                allocation = await RelayService.Instance.CreateAllocationAsync(maxJugadores - 1);
+            }
 
             string joinCode =
                 await RelayService.Instance.GetJoinCodeAsync(allocation.AllocationId);
@@ -185,18 +214,26 @@ public class GameManager : MonoBehaviour
             var relayData = new RelayServerData(allocation, "wss");
             transport.SetRelayServerData(relayData);
 
+            // Forzar encendido de ConnectionApproval en el Host
+            NetworkManager.Singleton.NetworkConfig.ConnectionApproval = true;
             NetworkManager.Singleton.ConnectionApprovalCallback = ConnectionApproval;
+
+            // Inyectar la nave elegida del propio Host en los datos de conexión locales antes de encender
+            int indexNaveHost = PlayerPrefs.GetInt("NaveSeleccionada", 0);
+            NetworkManager.Singleton.NetworkConfig.ConnectionData = BitConverter.GetBytes(indexNaveHost);
 
             NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnected;
             NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnected;
 
             NetworkManager.Singleton.StartHost();
+            Debug.Log("[LOG] Host iniciado exitosamente");
         }
         catch (Exception e)
         {
             Debug.LogError("[ERROR RELAY HOST] " + e);
         }
     }
+
 
     // =========================
     // CLIENT JOIN
@@ -242,6 +279,7 @@ public class GameManager : MonoBehaviour
                 BitConverter.GetBytes(indexNave);
 
             NetworkManager.Singleton.StartClient();
+            Debug.Log("[LOG] Cliente intentando unirse");
         }
         catch (Exception e)
         {
@@ -261,6 +299,11 @@ public class GameManager : MonoBehaviour
         if (request.Payload != null && request.Payload.Length >= 4)
         {
             index = BitConverter.ToInt32(request.Payload, 0);
+        }
+        else
+        {
+            // 🔥 CORRECCIÓN WEBGL 4: Si el payload viene vacío (común en el Host local), recuperamos de forma segura la selección
+            index = PlayerPrefs.GetInt("NaveSeleccionada", 0);
         }
 
         seleccionNaves[request.ClientNetworkId] = index;
@@ -295,12 +338,13 @@ public class GameManager : MonoBehaviour
 
         if (prefab == null)
         {
-            Debug.LogError("Prefab null");
+            Debug.LogError("Prefab null o no indexado para ID: " + index);
             return;
         }
 
         GameObject obj = Instantiate(prefab);
         obj.GetComponent<NetworkObject>().SpawnAsPlayerObject(clientId);
+        Debug.Log($"[LOG] Nave spawneada con éxito para el cliente: {clientId} con índice de nave: {index}");
     }
 
     private void OnClientDisconnected(ulong clientId)
