@@ -19,6 +19,8 @@ GameObject:
   - component: {fileID: -2712520464622989968}
   - component: {fileID: -7156331633788276743}
   - component: {fileID: -6117517091477771366}
+  - component: {fileID: 6995310874987475936}
+  - component: {fileID: 8334833312708893493}
   m_Layer: 0
   m_Name: Player_NaveA
   m_TagString: Player
@@ -103,7 +105,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GlobalObjectIdHash: 388064905
+  GlobalObjectIdHash: 3143134711
   InScenePlacedSourceGlobalObjectIdHash: 0
   AlwaysReplicateAsRoot: 0
   SynchronizeTransform: 1
@@ -181,8 +183,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 51dbd7798f3a29c4fb07fcc552374b81, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &-2712520464622989968
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -193,8 +195,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c352407b89859344b36c10e4e0d4d93, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
   score:
     m_InternalValue: 0
   bonusRecarga:
@@ -258,6 +260,43 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f6c0be61502bb534f922ebb746851216, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &6995310874987475936
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 470579141693910612}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 12bf3e2cc0651da44adfd4833f903803, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  prefabBala: {fileID: 0}
+  puntoDisparo: {fileID: 0}
+  velocidadBala: 20
+  tiempoRecargaBase: 3
+  indicadorBonus: {fileID: 0}
+--- !u!114 &8334833312708893493
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 470579141693910612}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 343f1d6fd347bad498ad820d597135c5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  clipLaser: {fileID: 8300000, guid: 124ec87eead9c8c4fa75799e88dc12db, type: 3}
+  clipPropulsor: {fileID: 8300000, guid: 25d1d57b07afda441bfe5e3aad11ca70, type: 3}
+  clipEscudo: {fileID: 8300000, guid: c913081187c22624b89eb70e21b20616, type: 3}
+  clipDestruccion: {fileID: 8300000, guid: be8190c17a8e2ab4ab83887c260371f3, type: 3}
+  volLaser: 0.574
+  volPropulsor: 0.199
+  volEscudo: 1
+  volDestruccion: 1
 --- !u!1 &3044137208653125397
 GameObject:
   m_ObjectHideFlags: 0

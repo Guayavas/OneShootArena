@@ -19,6 +19,8 @@ GameObject:
   - component: {fileID: 4404460018208459721}
   - component: {fileID: 1723621827077101349}
   - component: {fileID: 9048998735670948257}
+  - component: {fileID: 5512331698509903852}
+  - component: {fileID: 6234997209068066796}
   m_Layer: 0
   m_Name: Player_NaveB
   m_TagString: Player
@@ -181,8 +183,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 51dbd7798f3a29c4fb07fcc552374b81, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &4404460018208459721
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -193,8 +195,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c352407b89859344b36c10e4e0d4d93, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
   score:
     m_InternalValue: 0
   bonusRecarga:
@@ -258,6 +260,43 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f6c0be61502bb534f922ebb746851216, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &5512331698509903852
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5378438267675968841}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 12bf3e2cc0651da44adfd4833f903803, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  prefabBala: {fileID: 0}
+  puntoDisparo: {fileID: 0}
+  velocidadBala: 20
+  tiempoRecargaBase: 3
+  indicadorBonus: {fileID: 0}
+--- !u!114 &6234997209068066796
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5378438267675968841}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 343f1d6fd347bad498ad820d597135c5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  clipLaser: {fileID: 8300000, guid: 124ec87eead9c8c4fa75799e88dc12db, type: 3}
+  clipPropulsor: {fileID: 8300000, guid: 25d1d57b07afda441bfe5e3aad11ca70, type: 3}
+  clipEscudo: {fileID: 8300000, guid: c913081187c22624b89eb70e21b20616, type: 3}
+  clipDestruccion: {fileID: 8300000, guid: be8190c17a8e2ab4ab83887c260371f3, type: 3}
+  volLaser: 0.7
+  volPropulsor: 0.4
+  volEscudo: 0.8
+  volDestruccion: 1
 --- !u!1 &8658484251150536274
 GameObject:
   m_ObjectHideFlags: 0

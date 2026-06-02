@@ -6,7 +6,7 @@ public class PlayerHealth : NetworkBehaviour
     [SerializeField] private float vidaMaxima = 1f;
     private NetworkVariable<float> vidaActual = new NetworkVariable<float>();
     private bool tieneEscudo = false;
-    public GameObject visualEscudo; // Asignar esfera visual en Inspector
+    public GameObject visualEscudo;
     private PlayerStats stats;
 
     public override void OnNetworkSpawn()
@@ -31,7 +31,6 @@ public class PlayerHealth : NetworkBehaviour
     {
         if (!IsOwner) return;
 
-        // testear muerte
         if (Input.GetKeyDown(KeyCode.K))
             MorirServerRpc();
     }
@@ -43,7 +42,7 @@ public class PlayerHealth : NetworkBehaviour
         if (tieneEscudo)
         {
             DesactivarEscudo();
-            Debug.Log("Escudo absorbio el danio.");
+            SonarEscudoClientRpc();
             return;
         }
 
@@ -64,9 +63,11 @@ public class PlayerHealth : NetworkBehaviour
         AsignarStats();
         if (stats != null) stats.DisminuirBonus();
 
-        NotificarMuerteClientRpc();
+        NaveAudio audio = GetComponent<NaveAudio>();
+        if (audio == null) audio = GetComponentInParent<NaveAudio>();
+        audio?.SonarDestruccionClientRpc();
 
-        // Desactivar visualmente o mover a posición de respawn
+        NotificarMuerteClientRpc();
         ManejarRespawn();
     }
 
@@ -82,7 +83,6 @@ public class PlayerHealth : NetworkBehaviour
     private void ManejarRespawn()
     {
         float correctY = 0.1023054f;
-        // Posiciones aleatorias de respawn (ejemplo)
         Vector3[] posiciones = new Vector3[] {
             new Vector3(0,correctY,0), new Vector3(10,correctY,10), new Vector3(-10,correctY,10),
             new Vector3(10,correctY,-10), new Vector3(-10,correctY,-10)
@@ -90,13 +90,11 @@ public class PlayerHealth : NetworkBehaviour
 
         Vector3 nuevaPos = posiciones[UnityEngine.Random.Range(0, posiciones.Length)];
 
-        // En Netcode, el servidor debe mover el objeto
         if (IsServer)
         {
             transform.position = nuevaPos;
             vidaActual.Value = vidaMaxima;
 
-            // Resetear físicas en el servidor
             Rigidbody rb = GetComponent<Rigidbody>();
             if (rb != null)
             {
@@ -106,7 +104,6 @@ public class PlayerHealth : NetworkBehaviour
                 rb.WakeUp();
             }
 
-            // Forzar actualización de posición a los clientes
             RpcMoverNaveClientRpc(nuevaPos);
         }
     }
@@ -148,10 +145,26 @@ public class PlayerHealth : NetworkBehaviour
     {
         if (visualEscudo != null)
             visualEscudo.SetActive(activado);
+
+        if (activado)
+        {
+            NaveAudio audio = GetComponent<NaveAudio>();
+            if (audio == null) audio = GetComponentInParent<NaveAudio>();
+            if (IsOwner) audio?.SonarEscudo();
+        }
     }
 
     public bool TieneEscudoActivo()
     {
         return tieneEscudo;
+    }
+
+    [ClientRpc]
+    private void SonarEscudoClientRpc()
+    {
+        if (!IsOwner) return;
+        NaveAudio audio = GetComponent<NaveAudio>();
+        if (audio == null) audio = GetComponentInParent<NaveAudio>();
+        audio?.SonarEscudo();
     }
 }
