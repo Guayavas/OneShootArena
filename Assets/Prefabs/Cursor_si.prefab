@@ -12,10 +12,8 @@ GameObject:
   - component: {fileID: 1196956553818956221}
   - component: {fileID: 4564290247511743138}
   - component: {fileID: 6149065514826511391}
-  - component: {fileID: 3237214933923137633}
-  - component: {fileID: 5606535086433520158}
   m_Layer: 5
-  m_Name: Cursor
+  m_Name: Cursor_si
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -79,30 +77,6 @@ MonoBehaviour:
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
 --- !u!114 &6149065514826511391
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2089827393550973881}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4ad0df6e897e8b347abf7dbaa76b1c54, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!114 &3237214933923137633
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2089827393550973881}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4ad0df6e897e8b347abf7dbaa76b1c54, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!114 &5606535086433520158
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

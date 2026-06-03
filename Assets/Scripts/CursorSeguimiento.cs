@@ -3,26 +3,31 @@ using UnityEngine;
 public class CursorSeguimiento : MonoBehaviour
 {
     private RectTransform rectTransform;
+    private Canvas canvas;
 
     void Start()
     {
         rectTransform = GetComponent<RectTransform>();
-        // Oculta el puntero blanco normal de Windows
-        Cursor.visible = false; 
+        canvas = GetComponentInParent<Canvas>();
+        Cursor.visible = false;
     }
 
     void Update()
     {
-        // Obliga al objeto a emparejar sus coordenadas con las del mouse
-        if (rectTransform != null)
-        {
-            rectTransform.position = Input.mousePosition;
-        }
+        if (rectTransform == null || canvas == null) return;
+
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(
+            canvas.transform as RectTransform,
+            Input.mousePosition,
+            canvas.renderMode == RenderMode.ScreenSpaceOverlay ? null : canvas.worldCamera,
+            out Vector2 localPoint
+        );
+
+        rectTransform.localPosition = localPoint;
     }
 
     void OnDisable()
     {
-        // Si sales del juego, te devuelve tu mouse normal
-        Cursor.visible = true; 
+        Cursor.visible = true;
     }
 }
