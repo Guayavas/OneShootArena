@@ -17,4 +17,10 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Historia.unity
     guid: 9248d6ba741626a49b462e70beaec1c4
+  - enabled: 0
+    path: Assets/Scenes/PruebaFuncional.unity
+    guid: b7e4080aab364234d885e9b550f66ddf
+  - enabled: 1
+    path: Assets/Scenes/Creditos.unity
+    guid: 09cc0a1625a87d547b6e9bff902706f7
   m_configObjects: {}

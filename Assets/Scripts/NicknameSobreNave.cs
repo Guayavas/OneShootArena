@@ -1,73 +1,133 @@
-using System.Collections;
-using System.Collections.Generic;
 using TMPro;
-using UnityEngine;
-
+using Unity.Collections;
 using Unity.Netcode;
+using UnityEngine;
 
 public class NicknameSobreNave : NetworkBehaviour
 {
     [Header("Referencias")]
-    public Transform nave;
     public TMP_Text textoNickname;
 
-    [Header("Ajuste sobre la nave")]
-    public Vector3 offsetMundo = new Vector3(0, 1.2f, 0);
-    public Vector2 offsetPantalla = new Vector2(0, 25);
+    [Header("Ajustes")]
+    public Vector3 offsetLocal = new Vector3(0, 1.2f, 0);
 
     private PlayerStats stats;
+    private Camera camaraPrincipal;
 
-    void Start()
+    public override void OnNetworkSpawn()
     {
-        // Auto-asignar la nave si la referencia está vacía
-        if (nave == null)
+        camaraPrincipal = Camera.main;
+
+        // Si no se asignó manualmente, lo busca automáticamente en los hijos
+        if (textoNickname == null)
         {
-            // Buscamos el objeto principal (Root) que es donde está el NetworkObject de la nave spawneada
-            nave = transform.root;
+            textoNickname = GetComponentInChildren<TMP_Text>(true);
         }
 
-        AsignarStats();
-        if (stats != null)
-        {
-            stats.nickname.OnValueChanged += (oldValue, newValue) =>
-            {
-                textoNickname.text = newValue.ToString();
-            };
-
-            // Valor inicial
-            textoNickname.text = stats.nickname.Value.ToString();
-        }
-    }
-
-    private void AsignarStats()
-    {
-        if (stats != null) return;
-
-        stats = GetComponentInParent<PlayerStats>();
+        stats = GetComponent<PlayerStats>();
 
         if (stats == null)
         {
-            GameObject gm = GameObject.Find("GameManager");
-            if (gm != null) stats = gm.GetComponent<PlayerStats>();
+            stats = GetComponentInChildren<PlayerStats>();
+        }
+
+        if (stats == null)
+        {
+            Debug.LogError("No se encontró PlayerStats en " + gameObject.name);
+            return;
+        }
+
+        if (textoNickname != null)
+        {
+            textoNickname.transform.localPosition = offsetLocal;
+            textoNickname.text = stats.nickname.Value.ToString();
+            textoNickname.gameObject.SetActive(true);
+        }
+        else
+        {
+            Debug.LogError("No se encontró TextoNickname en " + gameObject.name);
+        }
+
+        stats.nickname.OnValueChanged += OnNicknameChanged;
+
+        if (IsOwner)
+        {
+            // IMPORTANTE: esta clave debe coincidir con HomeManager
+            string nombreGuardado = PlayerPrefs.GetString("Nickname", "Jugador");
+
+            if (string.IsNullOrWhiteSpace(nombreGuardado))
+            {
+                nombreGuardado = "Jugador";
+            }
+
+            Debug.Log("Nickname leído en Game: " + nombreGuardado);
+
+            CambiarNicknameServerRpc(nombreGuardado);
         }
     }
 
-    void Update()
+    private void OnNicknameChanged(FixedString32Bytes anterior, FixedString32Bytes nuevo)
     {
-        if (textoNickname == null)
-            return;
-
-        if (nave == null)
+        if (textoNickname != null)
         {
-            textoNickname.gameObject.SetActive(false);
+            textoNickname.text = nuevo.ToString();
+        }
+    }
+
+    [ServerRpc]
+    private void CambiarNicknameServerRpc(string nuevoNombre)
+    {
+        if (stats == null)
+        {
+            stats = GetComponent<PlayerStats>();
+
+            if (stats == null)
+            {
+                stats = GetComponentInChildren<PlayerStats>();
+            }
+        }
+
+        if (stats == null)
+        {
+            Debug.LogError("No se pudo cambiar el nickname porque no se encontró PlayerStats en " + gameObject.name);
             return;
         }
 
-        if (Camera.main == null)
+        if (string.IsNullOrWhiteSpace(nuevoNombre))
+        {
+            nuevoNombre = "Jugador";
+        }
+
+        stats.nickname.Value = nuevoNombre;
+    }
+
+    private void LateUpdate()
+    {
+        if (textoNickname == null)
+        {
             return;
+        }
 
-        Vector3 posicionPantalla = Camera.main.WorldToScreenPoint(nave.position + offsetMundo);
+        if (camaraPrincipal == null)
+        {
+            camaraPrincipal = Camera.main;
+        }
 
-        textoNickname.transform.position = posicionPantalla + new Vector3(offsetPantalla.x, offsetPantalla.y, 0);
+        if (camaraPrincipal == null)
+        {
+            return;
+        }
+
+        textoNickname.transform.rotation = Quaternion.LookRotation(
+            textoNickname.transform.position - camaraPrincipal.transform.position
+        );
+    }
+
+    public override void OnNetworkDespawn()
+    {
+        if (stats != null)
+        {
+            stats.nickname.OnValueChanged -= OnNicknameChanged;
+        }
     }
 }
