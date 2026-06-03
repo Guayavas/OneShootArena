@@ -209,6 +209,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 3351022240062841134, guid: ca02387a22ffc2b4a8b34471ea357103, type: 3}
+      propertyPath: cursorTexture
+      value: 
+      objectReference: {fileID: 2800000, guid: 256312ef48ac2d54b925c6b56b1132da, type: 3}
     - target: {fileID: 3738023905911719799, guid: ca02387a22ffc2b4a8b34471ea357103, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0

@@ -9,7 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3738023905911719799}
-  - component: {fileID: 5082102922981830952}
+  - component: {fileID: 3351022240062841134}
   m_Layer: 0
   m_Name: GestorCursor
   m_TagString: Untagged
@@ -32,7 +32,7 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &5082102922981830952
+--- !u!114 &3351022240062841134
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -41,7 +41,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 5778953330159870941}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4ad0df6e897e8b347abf7dbaa76b1c54, type: 3}
+  m_Script: {fileID: 11500000, guid: 81f5f705a5ff04c46839557ae728459b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  cursorTexture: {fileID: 2800000, guid: 0f4887831c03ce84d9d1851e2e838adb, type: 3}
+  cursorTexture: {fileID: 2800000, guid: 256312ef48ac2d54b925c6b56b1132da, type: 3}
