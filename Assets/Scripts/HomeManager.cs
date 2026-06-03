@@ -74,6 +74,18 @@ public class HomeManager : MonoBehaviour
         SceneManager.LoadScene("Historia");
     }
 
+    public void IrTutorial()
+    {
+        AudioManager.Instance?.ReproducirClick();
+        SceneManager.LoadScene("Tutorial");
+    }
+
+    public void IrCreditos()
+    {
+        AudioManager.Instance?.ReproducirClick();
+        SceneManager.LoadScene("Creditos");
+    }
+
     public void AbrirOpciones()
     {
         Debug.Log("Bot�n Opciones presionado");

@@ -20,4 +20,10 @@ EditorBuildSettings:
   - enabled: 0
     path: Assets/Scenes/PruebaFuncional.unity
     guid: b7e4080aab364234d885e9b550f66ddf
+  - enabled: 1
+    path: Assets/Scenes/Tutorial.unity
+    guid: 37494a1dbf7e47f4fa98b42a24fc8ee0
+  - enabled: 1
+    path: Assets/Scenes/Creditos.unity
+    guid: 09cc0a1625a87d547b6e9bff902706f7
   m_configObjects: {}
