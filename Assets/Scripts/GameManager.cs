@@ -49,6 +49,15 @@ public class GameManager : MonoBehaviour
 
     void Update() => HandleHeartbeat();
 
+    private void OnDestroy()
+    {
+        if (NetworkManager.Singleton != null)
+        {
+            NetworkManager.Singleton.OnClientConnectedCallback -= OnClientConnected;
+            NetworkManager.Singleton.OnClientDisconnectCallback -= OnClientDisconnect;
+        }
+    }
+
     private async void HandleHeartbeat()
     {
         if (lobbyActual != null && lobbyActual.HostId == AuthenticationService.Instance.PlayerId)
@@ -115,14 +124,22 @@ public class GameManager : MonoBehaviour
             var relayServerData = new RelayServerData(allocation, "wss");
             transport.SetRelayServerData(relayServerData);
 
+            // Limpiamos suscripciones previas por si acaso
+            NetworkManager.Singleton.OnClientConnectedCallback -= OnClientConnected;
+            NetworkManager.Singleton.OnClientDisconnectCallback -= OnClientDisconnect;
+
             NetworkManager.Singleton.ConnectionApprovalCallback = ConnectionApproval;
             NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnected;
             NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnect;
 
             int indexNave = PlayerPrefs.GetInt("NaveSeleccionada", 0);
+            seleccionNaves.Clear(); // Limpiamos el diccionario al iniciar nuevo host
             seleccionNaves[0] = indexNave;
 
-            Debug.Log("[LOG] Iniciando Host...");
+            // IMPORTANTE: El Host también debe enviar su selección en el ConnectionData
+            NetworkManager.Singleton.NetworkConfig.ConnectionData = BitConverter.GetBytes(indexNave);
+
+            Debug.Log("[LOG] Iniciando Host con nave: " + indexNave);
             NetworkManager.Singleton.StartHost();
             Debug.Log("[LOG] Host iniciado correctamente.");
         }
@@ -174,16 +191,33 @@ public class GameManager : MonoBehaviour
 
     private void ConnectionApproval(NetworkManager.ConnectionApprovalRequest request, NetworkManager.ConnectionApprovalResponse response)
     {
-        int indexNave = (request.Payload.Length >= 4) ? BitConverter.ToInt32(request.Payload, 0) : 0;
+        // El Host también pasa por aquí al inicio
+        int indexNave = 0;
+        if (request.Payload != null && request.Payload.Length >= 4)
+        {
+            indexNave = BitConverter.ToInt32(request.Payload, 0);
+        }
+        else
+        {
+            // Fallback para el host por si el payload llega vacío en alguna versión de NGO
+            if (request.ClientNetworkId == 0)
+            {
+                indexNave = PlayerPrefs.GetInt("NaveSeleccionada", 0);
+            }
+        }
+
         response.Approved = true;
         response.CreatePlayerObject = false;
         response.Pending = false;
+
         seleccionNaves[request.ClientNetworkId] = indexNave;
-        Debug.Log($"[LOG] Aprobando cliente {request.ClientNetworkId} con nave {indexNave}");
+        Debug.Log($"[LOG] ConnectionApproval: Cliente {request.ClientNetworkId} - Nave index: {indexNave} - Payload length: {(request.Payload?.Length ?? 0)}");
     }
 
     private void OnClientConnected(ulong clientId)
     {
+        if (!NetworkManager.Singleton.IsServer) return;
+
         Debug.Log($"[LOG] Cliente {clientId} conectado.");
         int index = seleccionNaves.ContainsKey(clientId) ? seleccionNaves[clientId] : 0;
         NetorkPersistence persistence = FindObjectOfType<NetorkPersistence>();
