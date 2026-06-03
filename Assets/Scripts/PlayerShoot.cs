@@ -16,12 +16,7 @@ public class PlayerShoot : NetworkBehaviour
     private float tiempoTranscurrido;
     private bool puedoDisparar = true;
     private PlayerStats stats;
-
-    //[Header("Indicadores UI")]
-    // Se eliminó indicadorPowerUpRecarga por feedback del usuario
-
-    //[Header("Indicadores UI")]
-    // Se eliminó indicadorPowerUpRecarga por feedback del usuario
+    private NaveAudio naveAudio;
 
     void Awake()
     {
@@ -31,13 +26,14 @@ public class PlayerShoot : NetworkBehaviour
     public override void OnNetworkSpawn()
     {
         AsignarStats();
+        naveAudio = GetComponent<NaveAudio>();
+        if (naveAudio == null) naveAudio = GetComponentInParent<NaveAudio>();
 
         if (IsOwner)
         {
             GameObject canvas = GameObject.Find("IndicadorRecarga");
             if (canvas != null) iconoRecarga = canvas.GetComponent<Image>();
 
-            // Iniciamos listos para disparar
             float tiempoActualRecarga = (stats != null) ? (tiempoRecargaBase / stats.bonusRecarga.Value) : tiempoRecargaBase;
             tiempoTranscurrido = tiempoActualRecarga;
             puedoDisparar = true;
@@ -49,8 +45,6 @@ public class PlayerShoot : NetworkBehaviour
         if (stats != null) return;
         stats = GetComponent<PlayerStats>();
         if (stats == null) stats = GetComponentInParent<PlayerStats>();
-
-        // Si aún es null, intentamos buscarlo en el mismo objeto que el NetworkObject
         if (stats == null && NetworkObject != null)
             stats = NetworkObject.GetComponent<PlayerStats>();
     }
@@ -64,7 +58,6 @@ public class PlayerShoot : NetworkBehaviour
             return;
         }
 
-        // El bonus disminuye el tiempo de recarga: tiempoRecargaBase / bonus
         float tiempoActualRecarga = tiempoRecargaBase / stats.bonusRecarga.Value;
 
         if (!puedoDisparar)
@@ -81,13 +74,13 @@ public class PlayerShoot : NetworkBehaviour
         {
             puedoDisparar = false;
             tiempoTranscurrido = 0f;
+            naveAudio?.SonarLaser();
             DispararServerRpc();
         }
 
         if (iconoRecarga != null)
             iconoRecarga.fillAmount = Mathf.Clamp01(tiempoTranscurrido / tiempoActualRecarga);
     }
-
 
     [ServerRpc]
     void DispararServerRpc()
@@ -96,7 +89,6 @@ public class PlayerShoot : NetworkBehaviour
 
         Vector3 spawnPos = (puntoDisparo != null) ? puntoDisparo.position : transform.position;
 
-        // Notificamos a los clientes para que inicien su recarga visual
         IniciarRecargaLocalClientRpc();
 
         GameObject bala = Instantiate(prefabBala, spawnPos, Quaternion.Euler(90f, 0f, 0f));
@@ -162,7 +154,6 @@ public class PlayerShoot : NetworkBehaviour
         if (IsOwner)
         {
             tiempoTranscurrido += cantidad;
-            Debug.Log($"Recarga reducida en {cantidad}s");
         }
     }
 
@@ -177,19 +168,19 @@ public class PlayerShoot : NetworkBehaviour
     {
         if (IsServer)
         {
-             AsignarStats();
-             if (stats != null)
-             {
-                 stats.AumentarBonus();
-                 stats.SumarPunto();
-             }
-             KillConfirmadoClientRpc();
+            AsignarStats();
+            if (stats != null)
+            {
+                stats.AumentarBonus();
+                stats.SumarPunto();
+            }
+            KillConfirmadoClientRpc();
         }
     }
 
     [ClientRpc]
     void KillConfirmadoClientRpc()
     {
-        if (IsOwner) Debug.Log("¡Enemigo eliminado! Bonus aumentado.");
+        if (IsOwner) Debug.Log("Enemigo eliminado. Bonus aumentado.");
     }
 }

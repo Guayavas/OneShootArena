@@ -14,7 +14,7 @@ public class HomeManager : MonoBehaviour
     [Header("Panel ONGs")]
     public GameObject panelONGs;
 
-    [Header("Validación Nickname")]
+    [Header("Validaciï¿½n Nickname")]
     public GameObject panelErrorNickname;
     public float duracionError = 2f;
 
@@ -31,6 +31,7 @@ public class HomeManager : MonoBehaviour
 
     public void Jugar()
     {
+        AudioManager.Instance?.ReproducirClick();
         string nickname = "";
 
         if (inputNickname != null)
@@ -69,16 +70,18 @@ public class HomeManager : MonoBehaviour
 
     public void IrHistoria()
     {
+        AudioManager.Instance?.ReproducirClick();
         SceneManager.LoadScene("Historia");
     }
 
     public void AbrirOpciones()
     {
-        Debug.Log("Botón Opciones presionado");
+        Debug.Log("Botï¿½n Opciones presionado");
     }
 
     public void AlternarPanel()
     {
+        AudioManager.Instance?.ReproducirClick();
         if (panelONGs != null)
             panelONGs.SetActive(!panelONGs.activeSelf);
     }

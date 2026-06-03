@@ -386,8 +386,8 @@ MonoBehaviour:
   tipText: {fileID: 1805351882}
   gameSceneName: Game
   loadingSceneName: Loading
-  minimumLoadingTime: 6
-  extraWaitAfterGameLoaded: 10
+  minimumLoadingTime: 3
+  timeoutSeconds: 5
   tips:
   - Recoge power-ups para mejorar escudo, velocidad y recarga.
   - "Usa el escudo cuando est\xE9s en peligro.\n"
@@ -1384,8 +1384,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: <color=#00E7FF>Consejo:</color> recoge power-ups para mejorar escudo, velocidad
-    y recarga.
+  m_text: <color=#00E7FF>Consejo:</color> hola
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 46111a741b972d74b82589197102be5f, type: 2}
   m_sharedMaterial: {fileID: 2490782432311791332, guid: 46111a741b972d74b82589197102be5f, type: 2}
