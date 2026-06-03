@@ -18538,7 +18538,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ed658124cf853ac418a691852adf945b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  textoScoreLocal: {fileID: 1541568507}
+  textoScoreLocal: {fileID: 1541568506}
   rankingItems:
   - rootObject: {fileID: 1851622302}
     nombreTexto: {fileID: 1851622301}
@@ -20124,17 +20124,6 @@ RectTransform:
 --- !u!114 &1541568506 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 6270678495124877175, guid: 71f0f792db2b3a848807fb3067f5bc8d, type: 3}
-  m_PrefabInstance: {fileID: 1541568504}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!114 &1541568507 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 4351931489852616063, guid: 71f0f792db2b3a848807fb3067f5bc8d, type: 3}
   m_PrefabInstance: {fileID: 1541568504}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 0}
